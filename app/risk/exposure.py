@@ -1,3 +1,5 @@
+﻿"""Deterministic portfolio exposure aggregation by symbol and net or gross totals."""
+
 import numpy as np
 import pandas as pd
 

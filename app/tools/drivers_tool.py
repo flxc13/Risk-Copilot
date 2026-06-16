@@ -1,3 +1,5 @@
+﻿"""Typed tool wrapper for deterministic risk driver attribution execution."""
+
 import pandas as pd
 from pydantic import BaseModel, Field
 

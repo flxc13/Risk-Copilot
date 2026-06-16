@@ -1,3 +1,5 @@
+﻿"""HTTP routes for risk computation and risk analysis endpoints."""
+
 from fastapi import APIRouter
 
 from app.models.schemas import (

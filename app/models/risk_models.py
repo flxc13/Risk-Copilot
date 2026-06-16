@@ -1,3 +1,5 @@
+﻿"""Domain result models for exposure, VaR, breaches, drivers, and analysis outputs."""
+
 from pydantic import BaseModel, Field
 
 

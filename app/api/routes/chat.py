@@ -1,3 +1,5 @@
+﻿"""HTTP route for chat requests delegated to the chat service layer."""
+
 from fastapi import APIRouter
 
 from app.models.schemas import ChatRequest, ChatResponse

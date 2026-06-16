@@ -1,3 +1,5 @@
+﻿"""Typed tool wrapper for deterministic historical VaR computation."""
+
 import pandas as pd
 from pydantic import BaseModel, Field
 

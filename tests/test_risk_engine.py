@@ -1,3 +1,5 @@
+﻿"""Unit test covering deterministic risk components on representative mock inputs."""
+
 import pandas as pd
 
 from app.data.mock_market import get_mock_historical_returns

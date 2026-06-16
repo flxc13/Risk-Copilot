@@ -1,3 +1,5 @@
+﻿"""Request-level audit logging utilities that persist structured traces to SQLite."""
+
 import json
 import logging
 from typing import Any

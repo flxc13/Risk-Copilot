@@ -1,3 +1,5 @@
+﻿"""Chat orchestration service combining retrieval context, risk analysis, and audit logging."""
+
 import time
 import uuid
 

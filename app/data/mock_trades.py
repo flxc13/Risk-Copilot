@@ -1,3 +1,5 @@
+﻿"""Mock trade payload provider used when requests omit explicit trade lists."""
+
 from app.models.schemas import TradeSchema
 
 

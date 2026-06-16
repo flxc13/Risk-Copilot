@@ -1,3 +1,5 @@
+﻿"""Typed tool wrapper for deterministic portfolio exposure computation."""
+
 import pandas as pd
 from pydantic import BaseModel
 

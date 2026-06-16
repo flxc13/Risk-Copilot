@@ -1,3 +1,5 @@
+﻿"""Database schema creation utilities for request audit log tables."""
+
 import sqlite3
 
 from app.db.session import get_connection

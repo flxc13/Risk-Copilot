@@ -1,3 +1,5 @@
+﻿"""Service-layer workflows for /risk/compute and /risk/analyze with trace logging."""
+
 import time
 import uuid
 

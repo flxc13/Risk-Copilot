@@ -1,3 +1,5 @@
+﻿"""Risk engine composition layer that computes a full deterministic risk snapshot."""
+
 import pandas as pd
 
 from app.models.risk_models import RiskComputationResult

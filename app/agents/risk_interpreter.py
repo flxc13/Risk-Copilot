@@ -1,3 +1,5 @@
+﻿"""Builds explanation, hypothesis, and suggestion text from deterministic risk outputs."""
+
 from app.models.risk_models import InterpretationResult, RiskComputationResult
 
 

@@ -1,3 +1,5 @@
+﻿"""Application configuration definitions loaded from environment settings."""
+
 import os
 
 from pydantic import BaseModel, Field

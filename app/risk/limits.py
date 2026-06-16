@@ -1,3 +1,5 @@
+﻿"""Deterministic limit breach checks against configured exposure and VaR thresholds."""
+
 from app.models.risk_models import ExposureResult, LimitBreach, VaRResult
 from app.models.schemas import LimitConfigSchema
 

@@ -1,3 +1,5 @@
+﻿"""Historical simulation VaR calculations based on trades and return scenarios."""
+
 import numpy as np
 import pandas as pd
 

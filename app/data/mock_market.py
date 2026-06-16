@@ -1,3 +1,5 @@
+﻿"""Mock market return scenarios used by the deterministic VaR and driver calculations."""
+
 def get_mock_historical_returns() -> dict[str, list[float]]:
     return {
         "AAPL": [

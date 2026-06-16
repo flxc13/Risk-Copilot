@@ -1,3 +1,5 @@
+﻿"""API request and response schemas plus shared validation models."""
+
 from pydantic import BaseModel, Field
 
 from app.models.risk_models import RiskAnalysisResult, RiskComputationResult

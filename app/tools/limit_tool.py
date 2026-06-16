@@ -1,3 +1,5 @@
+﻿"""Typed tool wrapper for deterministic risk limit breach detection."""
+
 from pydantic import BaseModel
 
 from app.models.risk_models import ExposureResult, LimitBreach, VaRResult

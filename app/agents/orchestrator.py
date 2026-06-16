@@ -1,3 +1,5 @@
+﻿"""Coordinates deterministic tool calls and packages computation plus interpretation outputs."""
+
 from app.agents.risk_interpreter import interpret_risk
 from app.models.risk_models import RiskAnalysisResult, RiskComputationResult
 from app.models.schemas import LimitConfigSchema, TradeSchema

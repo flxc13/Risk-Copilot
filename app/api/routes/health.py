@@ -1,3 +1,5 @@
+﻿"""Health-check route exposing service availability and timestamp information."""
+
 from datetime import datetime, timezone
 
 from fastapi import APIRouter

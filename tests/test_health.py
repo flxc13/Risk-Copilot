@@ -1,3 +1,5 @@
+﻿"""Endpoint smoke test validating health route availability and response schema."""
+
 from fastapi.testclient import TestClient
 
 from app.api.main import app

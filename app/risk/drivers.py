@@ -1,3 +1,5 @@
+﻿"""Deterministic risk driver attribution logic for exposure and VaR proxy contributions."""
+
 import numpy as np
 import pandas as pd
 

@@ -1,3 +1,5 @@
+﻿"""SQLite connection factory used by logging and table management helpers."""
+
 import sqlite3
 
 from app.core.config import settings
