@@ -15,49 +15,52 @@ Production-style Python MVP for deterministic portfolio risk computation and AI-
 ## Project Structure
 
 ```text
-risk-ai-copilot/
-?œâ? app/
-?? ?œâ? api/
-?? ?? ?œâ? main.py
-?? ?? ?œâ? routes/
-?? ?? ?? ?œâ? chat.py
-?? ?? ?? ?œâ? risk.py
-?? ?? ?? ?”â? health.py
-?? ?œâ? core/
-?? ?? ?œâ? config.py
-?? ?? ?”â? logging.py
-?? ?œâ? agents/
-?? ?? ?œâ? orchestrator.py
-?? ?? ?œâ? risk_interpreter.py
-?? ?? ?”â? prompts.py
-?? ?œâ? risk/
-?? ?? ?œâ? engine.py
-?? ?? ?œâ? exposure.py
-?? ?? ?œâ? var.py
-?? ?? ?œâ? limits.py
-?? ?? ?”â? drivers.py
-?? ?œâ? tools/
-?? ?? ?œâ? exposure_tool.py
-?? ?? ?œâ? var_tool.py
-?? ?? ?œâ? limit_tool.py
-?? ?? ?”â? drivers_tool.py
-?? ?œâ? services/
-?? ?? ?œâ? chat_service.py
-?? ?? ?”â? risk_service.py
-?? ?œâ? models/
-?? ?? ?œâ? schemas.py
-?? ?? ?”â? risk_models.py
-?? ?œâ? data/
-?? ?? ?œâ? mock_trades.py
-?? ?? ?”â? mock_market.py
-?? ?”â? db/
-??    ?œâ? session.py
-??    ?”â? tables.py
-?œâ? tests/
-?œâ? scripts/
-?œâ? .env.example
-?œâ? pyproject.toml
-?œâ? README.md
+.
+|-- app/
+|   |-- agents/
+|   |   |-- orchestrator.py
+|   |   |-- prompts.py
+|   |   `-- risk_interpreter.py
+|   |-- api/
+|   |   |-- main.py
+|   |   `-- routes/
+|   |       |-- chat.py
+|   |       |-- health.py
+|   |       `-- risk.py
+|   |-- core/
+|   |   |-- config.py
+|   |   `-- logging.py
+|   |-- data/
+|   |   |-- mock_market.py
+|   |   `-- mock_trades.py
+|   |-- db/
+|   |   |-- session.py
+|   |   `-- tables.py
+|   |-- models/
+|   |   |-- risk_models.py
+|   |   `-- schemas.py
+|   |-- risk/
+|   |   |-- drivers.py
+|   |   |-- engine.py
+|   |   |-- exposure.py
+|   |   |-- limits.py
+|   |   `-- var.py
+|   |-- services/
+|   |   |-- chat_service.py
+|   |   `-- risk_service.py
+|   `-- tools/
+|       |-- drivers_tool.py
+|       |-- exposure_tool.py
+|       |-- limit_tool.py
+|       `-- var_tool.py
+|-- scripts/
+|   `-- example_payload.json
+|-- tests/
+|   |-- test_health.py
+|   `-- test_risk_engine.py
+|-- .env.example
+|-- pyproject.toml
+`-- README.md
 ```
 
 ## Features
@@ -96,7 +99,7 @@ Checklist update rule:
 
 ## Install
 
-From the `risk-ai-copilot` directory:
+From the repository root:
 
 ```bash
 python -m venv .venv
