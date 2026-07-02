@@ -1,12 +1,4 @@
-{
-  "trades": [
-    {"trade_id": "N1", "symbol": "AAPL", "side": "BUY", "quantity": 100, "price": 195},
-    {"trade_id": "N2", "symbol": "MSFT", "side": "BUY", "quantity": 60, "price": 432},
-    {"trade_id": "N3", "symbol": "TSLA", "side": "SELL", "quantity": 25, "price": 205}
-  ],
-  "confidence": 0.95,
-  "limit_config": {
-    "max_gross_exposure": 1000000,
-    "max_var": 100000
-  }
+﻿{
+  "portfolio_id": "demo-001",
+  "as_of": "2026-07-03"
 }
