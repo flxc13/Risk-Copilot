@@ -1,6 +1,5 @@
-﻿from pydantic import BaseModel
+from __future__ import annotations
 
+from app.models.schemas import PortfolioHolding, RiskReport
 
-class PortfolioRiskSnapshot(BaseModel):
-    portfolio_id: str
-    var_95: float
+__all__ = ["PortfolioHolding", "RiskReport"]

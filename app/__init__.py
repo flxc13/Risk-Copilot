@@ -1,1 +1,1 @@
-﻿
+"""Risk Advisor Copilot."""

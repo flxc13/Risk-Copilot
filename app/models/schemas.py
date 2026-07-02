@@ -1,5 +1,40 @@
-﻿from pydantic import BaseModel
+﻿from __future__ import annotations
+
+from datetime import datetime
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
-class HealthResponse(BaseModel):
-    status: str
+class PortfolioHolding(BaseModel):
+    ticker: str
+    quantity: float = Field(gt=0)
+    average_cost: float = Field(ge=0)
+    asset_class: str = "Other"
+
+
+class RiskReport(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    portfolio_id: str = "core_long_equity"
+    portfolio_name: str = "Demo Portfolio"
+    strategy_style: str = ""
+    portfolio_objective: str = ""
+    as_of: datetime
+    holdings: list[PortfolioHolding]
+    total_value: float
+    daily_return: float
+    cumulative_return: float
+    volatility: float
+    annualized_volatility: float
+    historical_var_95: float
+    parametric_var_95: float
+    expected_shortfall_95: float
+    maximum_drawdown: float
+    sharpe_ratio: float
+    beta_vs_benchmark: float | None = None
+    exposures_by_ticker: dict[str, float] = Field(default_factory=dict)
+    exposures_by_asset_class: dict[str, float] = Field(default_factory=dict)
+    top_holdings: list[dict[str, float | str]] = Field(default_factory=list)
+    rolling_volatility: list[float] = Field(default_factory=list)
+    rolling_var_95: list[float] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
