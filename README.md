@@ -282,8 +282,10 @@ The repository now includes a working Python backend scaffold for Phase 1:
 
 - `GET /api/health`
 - `GET /api/portfolios`
+- `GET /api/phase1/status`
 - `GET /api/risk/report`
 - `POST /api/chat`
+- `GET /dashboard`
 
 ## Sample Portfolios
 
@@ -292,6 +294,18 @@ The phase-1 scaffold now ships with strategy-based sample portfolios designed to
 - `core_long_equity` - Quality growth / long-only. Objective: compound capital with high-conviction large-cap equity exposure and a modest cash buffer.
 - `defensive_income` - Capital preservation / income. Objective: prioritize drawdown control and steadier returns through defensive equities, bonds, gold, and cash.
 - `tactical_macro` - Macro / regime rotation. Objective: rotate capital between risk assets and diversifiers when macro conditions shift.
+
+## Dashboard
+
+The interactive dashboard is available at [app/api/routes/dashboard.py](app/api/routes/dashboard.py) through `GET /dashboard`. It includes:
+
+- portfolio selector
+- demo/live market-data toggle
+- portfolio NAV and benchmark charts
+- drawdown chart
+- correlation heatmap
+- holdings and exposures view
+- phase-1 completion checklist
 
 ### Out of Scope
 - live trading

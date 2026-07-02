@@ -15,6 +15,12 @@ def test_build_risk_report_contains_expected_fields() -> None:
     assert report["total_value"] > 0
     assert 0 <= report["historical_var_95"] < 1
     assert 0 <= report["expected_shortfall_95"] < 1
+    assert report["portfolio_value_series"]
+    assert report["portfolio_return_series"]
+    assert report["drawdown_series"]
+    assert report["benchmark_value_series"]
+    assert report["correlation_matrix"]
+    assert report["tracking_error"] is not None
     assert report["top_holdings"]
     assert report["warnings"] is not None
 

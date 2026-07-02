@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from app.core.config import get_settings
-from app.data.market_data import MarketDataError, fetch_adjusted_close
+from app.data.market_data import MarketDataError, ingest_historical_prices
 from app.data.mock_market import get_demo_market_data
 from app.data.mock_trades import get_demo_portfolio_by_id
 from app.data.portfolio_catalog import get_portfolio, list_portfolios
@@ -39,8 +39,8 @@ def generate_risk_report(
         )
     else:
         try:
-            price_frame = fetch_adjusted_close(tickers, period="1y")
-            benchmark_frame = fetch_adjusted_close([portfolio.benchmark_ticker or settings.benchmark_ticker], period="1y")
+            price_frame = ingest_historical_prices(tickers, period="1y")
+            benchmark_frame = ingest_historical_prices([portfolio.benchmark_ticker or settings.benchmark_ticker], period="1y")
             benchmark_prices = benchmark_frame[(portfolio.benchmark_ticker or settings.benchmark_ticker).upper()]
         except (MarketDataError, KeyError, IndexError):
             price_frame, benchmark_prices = get_demo_market_data(

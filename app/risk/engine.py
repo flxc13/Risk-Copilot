@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from datetime import datetime, timezone
-from math import sqrt
 
 import numpy as np
 import pandas as pd
@@ -71,6 +70,55 @@ def maximum_drawdown(value_series: pd.Series) -> float:
     return float(abs(drawdowns.min()))
 
 
+def current_drawdown(value_series: pd.Series) -> float:
+    if value_series.empty:
+        return 0.0
+    running_max = value_series.cummax()
+    drawdown = value_series.iloc[-1] / running_max.iloc[-1] - 1.0
+    return float(abs(drawdown)) if drawdown < 0 else 0.0
+
+
+def _series_to_records(series: pd.Series, value_key: str) -> list[dict[str, float | str]]:
+    if series.empty:
+        return []
+    records: list[dict[str, float | str]] = []
+    for index, value in series.items():
+        timestamp = pd.Timestamp(index)
+        records.append({"date": timestamp.strftime("%Y-%m-%d"), value_key: float(value)})
+    return records
+
+
+def _normalised_series(series: pd.Series) -> pd.Series:
+    if series.empty:
+        return series
+    first_value = float(series.iloc[0])
+    if first_value == 0:
+        return series.copy()
+    return (series / first_value) * 100.0
+
+
+def _correlation_matrix(price_frame: pd.DataFrame) -> dict[str, dict[str, float]]:
+    if price_frame.empty:
+        return {}
+
+    correlation_input = price_frame.copy()
+    if "CASH" in correlation_input.columns:
+        correlation_input = correlation_input.drop(columns=["CASH"])
+
+    if correlation_input.empty:
+        return {}
+
+    return_frame = correlation_input.pct_change().dropna()
+    if return_frame.empty:
+        return {}
+
+    variable_columns = [column for column in return_frame.columns if return_frame[column].std(ddof=0) > 0]
+    if not variable_columns:
+        return {}
+
+    return return_frame[variable_columns].corr().round(6).to_dict()
+
+
 def build_risk_report(
     price_frame: pd.DataFrame,
     holdings: Sequence[Mapping[str, float | str]],
@@ -86,6 +134,8 @@ def build_risk_report(
         raise ValueError("Portfolio values could not be calculated")
 
     portfolio_returns = portfolio_values.pct_change().dropna()
+    portfolio_value_series = _series_to_records(portfolio_values, "value")
+    portfolio_return_series = _series_to_records(portfolio_returns, "return")
     latest_value = float(portfolio_values.iloc[-1])
     first_value = float(portfolio_values.iloc[0])
     total_return = 0.0 if first_value == 0 else latest_value / first_value - 1.0
@@ -101,10 +151,30 @@ def build_risk_report(
     exposure_asset_class = exposure_by_asset_class(holdings, latest_prices)
     drivers = build_driver_summary(holdings, latest_prices)
     top_rows = top_holdings(holdings, latest_prices)
+    drawdowns = portfolio_values / portfolio_values.cummax() - 1.0
+    drawdown_series = _series_to_records(drawdowns, "drawdown")
+    correlation_matrix = _correlation_matrix(price_frame.reindex(columns=[str(holding["ticker"]).upper() for holding in holdings]))
+    portfolio_normalized = _normalised_series(portfolio_values)
 
     beta_vs_benchmark = None
+    benchmark_total_return = None
+    benchmark_daily_return = None
+    benchmark_volatility = None
+    tracking_error = None
+    active_return = None
+    correlation_vs_benchmark = None
+    benchmark_value_series: list[dict[str, float | str]] = []
+    benchmark_return_series: list[dict[str, float | str]] = []
     if benchmark_prices is not None:
+        benchmark_value_series = _series_to_records(benchmark_prices, "value")
         benchmark_returns = benchmark_prices.pct_change().dropna()
+        benchmark_return_series = _series_to_records(benchmark_returns, "return")
+        benchmark_normalized = _normalised_series(benchmark_prices)
+        benchmark_first_value = float(benchmark_prices.iloc[0]) if not benchmark_prices.empty else 0.0
+        benchmark_last_value = float(benchmark_prices.iloc[-1]) if not benchmark_prices.empty else 0.0
+        benchmark_total_return = 0.0 if benchmark_first_value == 0 else benchmark_last_value / benchmark_first_value - 1.0
+        benchmark_daily_return = float(benchmark_returns.iloc[-1]) if not benchmark_returns.empty else 0.0
+        benchmark_volatility = float(benchmark_returns.std(ddof=0)) if not benchmark_returns.empty else 0.0
         if not benchmark_returns.empty and not portfolio_returns.empty:
             aligned = pd.concat(
                 [portfolio_returns.rename("portfolio"), benchmark_returns.rename("benchmark")],
@@ -115,6 +185,12 @@ def build_risk_report(
                 beta_vs_benchmark = float(
                     aligned["portfolio"].cov(aligned["benchmark"]) / aligned["benchmark"].var(ddof=0)
                 )
+            if len(aligned) > 1:
+                tracking_error = float((aligned["portfolio"] - aligned["benchmark"]).std(ddof=0))
+                active_return = float(aligned["portfolio"].mean() - aligned["benchmark"].mean())
+                correlation_vs_benchmark = float(aligned["portfolio"].corr(aligned["benchmark"]))
+            if not benchmark_normalized.empty:
+                benchmark_value_series = _series_to_records(benchmark_prices, "value")
 
     rolling_vol = rolling_volatility(portfolio_returns).dropna().tail(10).tolist()
     rolling_var_values = rolling_var(portfolio_returns, confidence=confidence).dropna().tail(10).tolist()
@@ -130,14 +206,27 @@ def build_risk_report(
         "total_value": latest_value,
         "daily_return": daily_return,
         "cumulative_return": total_return,
+        "portfolio_value_series": portfolio_value_series,
+        "portfolio_return_series": portfolio_return_series,
         "volatility": volatility,
         "annualized_volatility": annualized,
         "historical_var_95": historical,
         "parametric_var_95": parametric,
         "expected_shortfall_95": shortfall,
         "maximum_drawdown": drawdown,
+        "current_drawdown": current_drawdown(portfolio_values),
+        "drawdown_series": drawdown_series,
         "sharpe_ratio": sharpe,
         "beta_vs_benchmark": beta_vs_benchmark,
+        "benchmark_total_return": benchmark_total_return,
+        "benchmark_daily_return": benchmark_daily_return,
+        "benchmark_volatility": benchmark_volatility,
+        "tracking_error": tracking_error,
+        "active_return": active_return,
+        "correlation_vs_benchmark": correlation_vs_benchmark,
+        "benchmark_value_series": benchmark_value_series,
+        "benchmark_return_series": benchmark_return_series,
+        "correlation_matrix": correlation_matrix,
         "exposures_by_ticker": exposure_ticker,
         "exposures_by_asset_class": exposure_asset_class,
         "top_holdings": top_rows,
