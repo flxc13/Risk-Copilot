@@ -287,6 +287,25 @@ The repository now includes a working Python backend scaffold for Phase 1:
 - `POST /api/chat`
 - `GET /dashboard`
 
+## Phase 2 AI Copilot
+
+The dashboard includes an AI Risk Copilot panel backed by `POST /api/chat`. It sends the selected portfolio, current market-data mode, and a grounded risk-report summary to a Poe OpenAI-compatible client.
+
+Set your Poe API key before running the API:
+
+```powershell
+$env:POE_API_KEY="your_poe_api_key"
+python -m uvicorn app.api.main:app --reload
+```
+
+The integration uses:
+
+- `POE_API_KEY` for authentication
+- `POE_BASE_URL`, defaulting to `https://api.poe.com/v1`
+- `POE_MODEL`, defaulting to `gpt-5.4`
+
+If `POE_API_KEY` is not set, the copilot uses an offline analyst fallback that still summarizes VaR, CVaR, drawdown, volatility, benchmark beta, and top exposures from the current risk report.
+
 ## Sample Portfolios
 
 The phase-1 scaffold now ships with strategy-based sample portfolios designed to mimic a small hedge fund's in-house risk tool:
@@ -306,6 +325,19 @@ The interactive dashboard is available at [app/api/routes/dashboard.py](app/api/
 - correlation heatmap
 - holdings and exposures view
 - phase-1 completion checklist
+
+## Frontend Sync Rule
+
+When changing any dashboard-relevant backend or data surface, update the dashboard in the same work slice or document why no UI change is required. This includes changes to:
+
+- API response payloads and route behavior
+- Pydantic schemas
+- portfolio catalog fields
+- market-data ingestion outputs
+- risk metrics and calculation names
+- phase status or health checks
+
+The dashboard at [app/api/routes/dashboard.py](app/api/routes/dashboard.py) is a first-class client of the API, so it should stay aligned with backend changes.
 
 ### Out of Scope
 - live trading

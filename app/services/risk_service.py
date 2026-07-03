@@ -17,6 +17,10 @@ def list_available_portfolios() -> list[dict[str, str]]:
             "strategy_style": portfolio.strategy_style,
             "objective": portfolio.objective,
             "benchmark_ticker": portfolio.benchmark_ticker,
+            "risk_budget": portfolio.risk_budget,
+            "target_net_exposure": portfolio.target_net_exposure,
+            "target_gross_exposure": portfolio.target_gross_exposure,
+            "pm_desk": portfolio.pm_desk,
         }
         for portfolio in list_portfolios()
     ]

@@ -19,12 +19,14 @@ Your job is to help implement the codebase in small, clean, working steps for a 
 - Do not widen scope when a focused change solves the request.
 - Prefer explicit, testable risk calculations.
 - Keep file boundaries clear and code modular.
+- When changing API payloads, schemas, portfolio catalog fields, risk metrics, route behavior, or dashboard-relevant data, update the frontend dashboard in the same slice or explicitly state why no UI change is needed.
 
 ## Approach
 1. Read README.md first, then inspect the smallest relevant set of files.
 2. Identify the narrowest vertical slice that solves the request.
 3. Implement the change with minimal, production-minded code.
-4. Validate the touched slice quickly and fix issues before expanding scope.
+4. Check whether the dashboard or frontend-facing copy needs to change for the touched backend/data surface.
+5. Validate the touched slice quickly and fix issues before expanding scope.
 
 ## Output Style
 - Be concise.
@@ -36,3 +38,4 @@ Your job is to help implement the codebase in small, clean, working steps for a 
 - Start from the repo's current architecture rather than rewriting it.
 - Keep risk calculations explicit and covered by tests where practical.
 - Keep the UI decent and simple, not generic or overdesigned.
+- Treat the dashboard as a first-class client of the API; backend/data changes that affect what users see should keep [app/api/routes/dashboard.py](app/api/routes/dashboard.py) aligned.

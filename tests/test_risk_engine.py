@@ -33,4 +33,7 @@ def test_portfolio_catalog_contains_strategy_baskets() -> None:
         "core_long_equity",
         "defensive_income",
         "tactical_macro",
+        "event_driven_special_sits",
     }
+    assert all(portfolio.risk_budget for portfolio in portfolios)
+    assert all(portfolio.pm_desk for portfolio in portfolios)

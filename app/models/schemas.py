@@ -10,6 +10,12 @@ class PortfolioHolding(BaseModel):
     quantity: float = Field(gt=0)
     average_cost: float = Field(ge=0)
     asset_class: str = "Other"
+    sector: str = "Unclassified"
+    region: str = "Global"
+    position_type: str = "Long"
+    liquidity_bucket: str = "Unknown"
+    risk_bucket: str = "Unclassified"
+    thesis: str = ""
 
 
 class RiskReport(BaseModel):

@@ -29,6 +29,12 @@ def _holdings_frame(holdings: Sequence[Mapping[str, float | str]]) -> pd.DataFra
                 "quantity": float(holding["quantity"]),
                 "average_cost": float(holding.get("average_cost", 0.0)),
                 "asset_class": str(holding.get("asset_class", "Other")),
+                "sector": str(holding.get("sector", "Unclassified")),
+                "region": str(holding.get("region", "Global")),
+                "position_type": str(holding.get("position_type", "Long")),
+                "liquidity_bucket": str(holding.get("liquidity_bucket", "Unknown")),
+                "risk_bucket": str(holding.get("risk_bucket", "Unclassified")),
+                "thesis": str(holding.get("thesis", "")),
             }
         )
     return pd.DataFrame(rows)
