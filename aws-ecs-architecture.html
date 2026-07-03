@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AWS ECS Fargate Architecture - Risk Copilot</title>
+
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f6f8fb;
+      color: #1f2937;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 24px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #111827;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #6b7280;
+      margin-bottom: 40px;
+      font-size: 16px;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 14px;
+      padding: 28px;
+      margin-bottom: 28px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+      border: 1px solid #e5e7eb;
+    }
+
+    h2 {
+      color: #111827;
+      margin-top: 0;
+      border-bottom: 2px solid #e5e7eb;
+      padding-bottom: 10px;
+    }
+
+    .diagram {
+      overflow-x: auto;
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px;
+      margin-top: 20px;
+    }
+
+    .summary-box {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 18px;
+    }
+
+    .summary-box h3 {
+      margin-top: 0;
+      color: #1f2937;
+      font-size: 16px;
+    }
+
+    .summary-box p,
+    li {
+      color: #4b5563;
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    code {
+      background: #eef2ff;
+      color: #3730a3;
+      padding: 2px 6px;
+      border-radius: 5px;
+      font-size: 13px;
+    }
+
+    .flow-text {
+      background: #111827;
+      color: #f9fafb;
+      padding: 20px;
+      border-radius: 12px;
+      overflow-x: auto;
+      line-height: 1.7;
+      font-family: Consolas, Monaco, monospace;
+      font-size: 14px;
+    }
+
+    .tag {
+      display: inline-block;
+      background: #dbeafe;
+      color: #1e40af;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      margin: 4px;
+    }
+
+    .footer {
+      text-align: center;
+      color: #6b7280;
+      margin-top: 40px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>AWS ECS Fargate Deployment Architecture</h1>
+    <p class="subtitle">
+      Containerized FastAPI Risk Copilot deployed with ECS Fargate, ECR, ALB, Secrets Manager, IAM, and CloudWatch Logs
+    </p>
+
+    <div class="card">
+      <h2>1. Cloud Infrastructure Topology</h2>
+
+      <div class="diagram">
+        <pre class="mermaid">
+flowchart TD
+    User["User / Browser"] -->|"HTTP :80"| ALB["Application Load Balancer<br/>risk-copilot-alb"]
+
+    subgraph AWS["AWS Cloud"]
+        subgraph VPC["VPC"]
+            subgraph PublicSubnets["Public Subnets across 2 Availability Zones"]
+                ALB
+            end
+
+            subgraph ECSLayer["ECS Fargate Layer"]
+                Service["ECS Service<br/>Desired Count: 1"]
+                Task["Fargate Task<br/>FastAPI Docker Container<br/>Port 8000"]
+                Service --> Task
+            end
+
+            ALB -->|"Forward traffic<br/>HTTP :8000"| Service
+        end
+
+        ECR["Amazon ECR<br/>risk-copilot:latest"] -->|"Pull container image"| Task
+
+        Secrets["AWS Secrets Manager<br/>POE_API_KEY"] -->|"Inject secret env var"| Task
+
+        Logs["CloudWatch Logs<br/>/ecs/risk-copilot"] <-->|"stdout / stderr logs"| Task
+
+        IAM["IAM Task Execution Role<br/>ecsTaskExecutionRole"] -->|"ECR pull<br/>Secrets access<br/>CloudWatch logging"| Task
+    end
+        </pre>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>2. Security Group Design</h2>
+
+      <div class="diagram">
+        <pre class="mermaid">
+flowchart TD
+    Internet["Internet<br/>0.0.0.0/0"] -->|"Inbound HTTP :80"| ALBSG["ALB Security Group<br/>risk-copilot-alb-sg"]
+
+    ALBSG --> ALB["Application Load Balancer"]
+
+    ALB -->|"HTTP :8000"| ECSSG["ECS Task Security Group<br/>risk-copilot-ecs-sg"]
+
+    ECSSG --> Task["ECS Fargate Task<br/>FastAPI Container"]
+
+    Rule1["Rule:<br/>Allow inbound port 80<br/>from 0.0.0.0/0"]
+    Rule2["Rule:<br/>Allow inbound port 8000<br/>only from ALB Security Group"]
+
+    ALBSG --- Rule1
+    ECSSG --- Rule2
+        </pre>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>3. Request Flow</h2>
+
+      <div class="flow-text">
+User Browser
+  |
+  | HTTP Request :80
+  v
+Application Load Balancer
+  |
+  | Forward to Target Group :8000
+  v
+ECS Fargate Service
+  |
+  v
+FastAPI Docker Container
+  |
+  | Pull image from ECR
+  | Read POE_API_KEY from Secrets Manager
+  | Send logs to CloudWatch
+  v
+Application Response
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>4. Component Summary</h2>
+
+      <div class="summary-grid">
+        <div class="summary-box">
+          <h3>Application Load Balancer</h3>
+          <p>
+            Public entry point for users. It receives HTTP traffic on port
+            <code>80</code> and routes requests to the ECS service.
+          </p>
+        </div>
+
+        <div class="summary-box">
+          <h3>ECS Fargate Service</h3>
+          <p>
+            Runs and maintains the FastAPI Docker container without managing EC2 servers.
+            Desired task count is set to <code>1</code> for the lab deployment.
+          </p>
+        </div>
+
+        <div class="summary-box">
+          <h3>Amazon ECR</h3>
+          <p>
+            Stores the Docker image for the application, for example
+            <code>risk-copilot:latest</code>.
+          </p>
+        </div>
+
+        <div class="summary-box">
+          <h3>AWS Secrets Manager</h3>
+          <p>
+            Stores sensitive runtime values such as <code>POE_API_KEY</code>.
+            ECS injects the value as an environment variable.
+          </p>
+        </div>
+
+        <div class="summary-box">
+          <h3>CloudWatch Logs</h3>
+          <p>
+            Centralizes container logs under the log group
+            <code>/ecs/risk-copilot</code>.
+          </p>
+        </div>
+
+        <div class="summary-box">
+          <h3>IAM Task Execution Role</h3>
+          <p>
+            Grants ECS permission to pull images from ECR, retrieve secrets,
+            and publish logs to CloudWatch.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>5. Architecture Description for README</h2>
+
+      <p>
+        The application is deployed as a containerized FastAPI service on AWS ECS Fargate.
+        User traffic enters through an internet-facing Application Load Balancer, which
+        forwards HTTP requests to an ECS service running inside a VPC. The container image
+        is stored in Amazon ECR, runtime secrets are injected from AWS Secrets Manager,
+        and application logs are centralized in CloudWatch Logs. IAM roles are used to
+        enforce controlled access for image pulls, secret retrieval, and logging.
+      </p>
+
+      <div>
+        <span class="tag">AWS ECS Fargate</span>
+        <span class="tag">Docker</span>
+        <span class="tag">Amazon ECR</span>
+        <span class="tag">Application Load Balancer</span>
+        <span class="tag">Secrets Manager</span>
+        <span class="tag">CloudWatch Logs</span>
+        <span class="tag">IAM</span>
+        <span class="tag">FastAPI</span>
+      </div>
+    </div>
+
+    <p class="footer">
+      Risk Copilot AWS ECS Fargate Infrastructure Design
+    </p>
+  </div>
+
+  <!-- Mermaid.js for rendering diagrams -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: "default",
+      securityLevel: "loose",
+      flowchart: {
+        curve: "basis",
+        useMaxWidth: true
+      }
+    });
+  </script>
+</body>
+</html>

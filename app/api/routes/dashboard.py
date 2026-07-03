@@ -1026,36 +1026,6 @@ def _dashboard_html() -> str:
           <p class="helper">This view overlays portfolio NAV with the benchmark so the desk can see relative performance and drift at a glance.</p>
           <div id="value-chart" class="chart"></div>
         </div>
-        <div class="panel">
-          <div class="section-heading">
-            <h3>Copilot briefing</h3>
-            <span>Phase 2 analyst layer</span>
-          </div>
-          <p class="helper">The floating AI Copilot uses the selected portfolio, market-data mode, and computed risk report to answer grounded portfolio questions.</p>
-          <div class="status-list">
-            <div class="status-item">
-              <div class="status-pill">✓</div>
-              <div class="status-copy">
-                <strong>Live Poe integration</strong>
-                <div class="small">Configured through POE_API_KEY with an offline analyst fallback when the provider is unavailable.</div>
-              </div>
-            </div>
-            <div class="status-item">
-              <div class="status-pill">✓</div>
-              <div class="status-copy">
-                <strong>Grounded risk answers</strong>
-                <div class="small">Answers are constrained to VaR, CVaR, drawdown, benchmark metrics, holdings, warnings, and portfolio catalog context.</div>
-              </div>
-            </div>
-            <div class="status-item">
-              <div class="status-pill">✓</div>
-              <div class="status-copy">
-                <strong>Usable chat surface</strong>
-                <div class="small">The chat is floating, resizable, markdown-aware, and includes collapsible suggested questions.</div>
-              </div>
-            </div>
-          </div>
-        </div>
       </section>
 
       <section class="layout alt content-section section-gap">
