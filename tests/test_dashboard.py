@@ -9,5 +9,7 @@ def test_dashboard_page_renders() -> None:
 
     assert response.status_code == 200
     assert "Risk Advisor Copilot Dashboard" in response.text
-    assert "Phase 1 completion" in response.text
+    assert "Copilot briefing" in response.text
+    assert "Phase 1 completion" not in response.text
+    assert "In-scope function check" not in response.text
     assert "AI Risk Copilot" in response.text

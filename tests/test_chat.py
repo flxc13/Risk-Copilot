@@ -1,10 +1,12 @@
 from fastapi.testclient import TestClient
 
 from app.api.main import app
+from app.core.config import get_settings
 
 
 def test_chat_endpoint_returns_offline_copilot_answer_without_key(monkeypatch) -> None:
     monkeypatch.delenv("POE_API_KEY", raising=False)
+    get_settings.cache_clear()
     client = TestClient(app)
 
     response = client.post(
@@ -21,3 +23,4 @@ def test_chat_endpoint_returns_offline_copilot_answer_without_key(monkeypatch) -
     assert body["mode"] == "offline_fallback"
     assert "historical VaR" in body["answer"]
     assert body["citations"]
+    get_settings.cache_clear()

@@ -260,16 +260,17 @@ risk-advisor-copilot/
 
 ---
 
-## Current Scaffold
+## Current Implementation Status
 
-The repository now includes a working Python backend scaffold for Phase 1:
+The repository now includes a working Phase 1 risk dashboard and a completed Phase 2 AI Copilot slice:
 
 - FastAPI app entrypoint at [app/api/main.py](app/api/main.py)
 - health, risk, and chat routes under [app/api/routes/](app/api/routes)
 - explicit portfolio risk calculations in [app/risk/](app/risk)
 - demo market data and a live `yfinance` adapter in [app/data/](app/data)
 - reusable request/response models in [app/models/schemas.py](app/models/schemas.py)
-- API and calculation tests in [tests/](tests)
+- floating markdown AI chat in [app/api/routes/dashboard.py](app/api/routes/dashboard.py)
+- API, dashboard, configuration, market-data, and calculation tests in [tests/](tests)
 
 ## Local Setup
 
@@ -289,7 +290,9 @@ The repository now includes a working Python backend scaffold for Phase 1:
 
 ## Phase 2 AI Copilot
 
-The dashboard includes an AI Risk Copilot panel backed by `POST /api/chat`. It sends the selected portfolio, current market-data mode, and a grounded risk-report summary to a Poe OpenAI-compatible client.
+Status: implemented for the current local app slice.
+
+The dashboard includes a floating AI Risk Copilot backed by `POST /api/chat`. It sends the selected portfolio, current market-data mode, and a grounded risk-report summary to a Poe OpenAI-compatible client.
 
 Set your Poe API key before running the API:
 
@@ -305,6 +308,23 @@ The integration uses:
 - `POE_MODEL`, defaulting to `gpt-5.4`
 
 If `POE_API_KEY` is not set, the copilot uses an offline analyst fallback that still summarizes VaR, CVaR, drawdown, volatility, benchmark beta, and top exposures from the current risk report.
+
+Implemented Phase 2 capabilities:
+
+- natural-language portfolio risk Q&A through `POST /api/chat`
+- grounded prompt context from the selected portfolio's computed risk report
+- live Poe provider mode with offline fallback
+- floating dashboard chat widget with resize, minimize, collapsible suggested questions, and markdown rendering
+- one-click investigation prompts for VaR, expected shortfall, concentration, benchmark risk, and PM review notes
+- tests covering offline fallback behavior and dashboard rendering
+
+Deferred beyond the current Phase 2 slice:
+
+- multi-step tool calling
+- persistent chat history
+- true portfolio what-if mutation workflows
+- automated alert triage jobs
+- generated PDF/markdown report export
 
 ## Sample Portfolios
 
@@ -324,7 +344,7 @@ The interactive dashboard is available at [app/api/routes/dashboard.py](app/api/
 - drawdown chart
 - correlation heatmap
 - holdings and exposures view
-- phase-1 completion checklist
+- floating AI Copilot with markdown answers and suggested questions
 
 ## Frontend Sync Rule
 
@@ -618,10 +638,10 @@ The Phase 1 MVP is complete when a user can:
 - alerts and badges
 
 ### Milestone 5 — AI Copilot Design
-- define tools and prompts
-- create risk explanation workflows
-- build chat entry point
-- connect to analytics outputs
+- define tools and prompts: complete for the current grounded-chat slice
+- create risk explanation workflows: complete for current risk-report Q&A
+- build chat entry point: complete via `POST /api/chat`
+- connect to analytics outputs: complete through selected portfolio risk-report context
 
 ### Milestone 6 — AWS Deployment
 - choose simple AWS topology
@@ -664,14 +684,7 @@ Potential extensions after the first three phases:
 ---
 
 ## Next Step
-Start with **Phase 1** and build the core system first:
-- sample portfolio
-- market data fetch
-- risk engine
-- polished UI
-- production-style repo structure
-
-Once that foundation is stable, layer on the **AI Risk Copilot**, then move to a simple **AWS deployment**.
+Phase 1 and the current Phase 2 AI Copilot slice are complete for local development. The next best product step is to add real what-if/scenario workflows behind the copilot, then move to a simple **AWS deployment** once those interactions are stable.
 
 ---
 ```  

@@ -19,6 +19,8 @@ def _dashboard_html() -> str:
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Risk Advisor Copilot Dashboard</title>
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked@14.1.2/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.7/dist/purify.min.js"></script>
   <style>
     :root {
       --bg: #030712;
@@ -667,6 +669,14 @@ def _dashboard_html() -> str:
       font-size: 18px;
       line-height: 1;
     }
+    .copilot-minimize-button {
+      display: grid;
+      place-items: center;
+      padding: 0 0 9px;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--accent-2);
+    }
     .copilot-icon-button:hover {
       border-color: rgba(45, 212, 191, 0.34);
       background: rgba(45, 212, 191, 0.10);
@@ -699,6 +709,51 @@ def _dashboard_html() -> str:
       line-height: 1.55;
       font-size: 14px;
       white-space: pre-wrap;
+    }
+    .message.markdown {
+      white-space: normal;
+    }
+    .message.markdown p {
+      margin: 0 0 10px;
+    }
+    .message.markdown p:last-child {
+      margin-bottom: 0;
+    }
+    .message.markdown ul, .message.markdown ol {
+      margin: 8px 0 10px 20px;
+      padding: 0;
+    }
+    .message.markdown li {
+      margin: 5px 0;
+    }
+    .message.markdown strong {
+      color: #f8fbff;
+    }
+    .message.markdown code {
+      border: 1px solid rgba(125, 211, 252, 0.16);
+      border-radius: 8px;
+      padding: 2px 5px;
+      background: rgba(3, 7, 18, 0.54);
+      color: #bae6fd;
+      font-size: 0.92em;
+    }
+    .message.markdown pre {
+      overflow-x: auto;
+      border: 1px solid rgba(125, 211, 252, 0.16);
+      border-radius: 12px;
+      padding: 10px;
+      background: rgba(3, 7, 18, 0.62);
+    }
+    .message.markdown pre code {
+      border: 0;
+      padding: 0;
+      background: transparent;
+    }
+    .message.markdown blockquote {
+      margin: 10px 0;
+      padding-left: 12px;
+      border-left: 3px solid rgba(45, 212, 191, 0.42);
+      color: var(--muted);
     }
     .message.user {
       justify-self: end;
@@ -897,7 +952,6 @@ def _dashboard_html() -> str:
           <a class="nav-item" href="#risk"><span>Risk</span><small>VaR, CVaR, drawdown</small></a>
           <a class="nav-item" href="#exposure"><span>Exposure</span><small>Weights and holdings</small></a>
           <a class="nav-item" href="#copilot"><span>AI Copilot</span><small>Ask, explain, investigate</small></a>
-          <a class="nav-item" href="#health"><span>Phase 1</span><small>Delivery status</small></a>
         </div>
       </div>
 
@@ -911,14 +965,6 @@ def _dashboard_html() -> str:
         </div>
       </div>
 
-      <div class="side-section">
-        <div class="side-title">Phase 1 check</div>
-        <div class="sidebar-kpi">
-          <div class="label">Implementation status</div>
-          <div class="value" id="sidebar-phase-status">Checking...</div>
-          <div class="note">This reflects the README scope for the phase-1 MVP slice.</div>
-        </div>
-      </div>
     </aside>
 
     <main class="content">
@@ -926,12 +972,12 @@ def _dashboard_html() -> str:
         <div>
           <p class="eyebrow">Risk Advisor Copilot</p>
           <h1>Autonomous Risk Command Center</h1>
-          <div class="subtitle">A production-style dashboard for small hedge funds: strategy-based sample portfolios, live or demo market data, explicit risk calculations, benchmark comparison, and a completion view for the current phase.</div>
+          <div class="subtitle">A production-style dashboard for small hedge funds: strategy-based sample portfolios, live or demo market data, explicit risk calculations, benchmark comparison, and a live AI copilot for risk explanation.</div>
           <div class="hero-telemetry">
             <div class="telemetry-chip"><span>Signal</span>VaR / CVaR online</div>
             <div class="telemetry-chip"><span>Feed</span>yfinance ingestion + cache</div>
             <div class="telemetry-chip"><span>Desk</span>PM-ready exposure diagnostics</div>
-            <div class="telemetry-chip"><span>Mode</span>Phase 1 complete</div>
+            <div class="telemetry-chip"><span>Mode</span>Phase 2 copilot online</div>
           </div>
         </div>
         <div class="hero-orbit" aria-hidden="true">
@@ -943,7 +989,7 @@ def _dashboard_html() -> str:
         <div class="command-tile"><strong>Portfolio telemetry</strong><span>Strategy selector, objective, market data mode, and refresh controls are wired to the live API.</span></div>
         <div class="command-tile"><strong>Risk engine</strong><span>NAV, returns, drawdown, VaR, CVaR, beta, tracking error, and correlations are computed server-side.</span></div>
         <div class="command-tile"><strong>Data layer</strong><span>Historical prices support demo mode and yfinance ingestion with deterministic local cache.</span></div>
-        <div class="command-tile"><strong>Control status</strong><span>Phase 1 scope is continuously visible through the completion endpoint.</span></div>
+        <div class="command-tile"><strong>AI copilot</strong><span>Floating markdown chat explains current VaR, drawdown, benchmark drift, concentration, and next review steps.</span></div>
       </div>
 
       <div class="controls">
@@ -980,13 +1026,35 @@ def _dashboard_html() -> str:
           <p class="helper">This view overlays portfolio NAV with the benchmark so the desk can see relative performance and drift at a glance.</p>
           <div id="value-chart" class="chart"></div>
         </div>
-        <div class="panel" id="health">
+        <div class="panel">
           <div class="section-heading">
-            <h3>Phase 1 completion</h3>
-            <span>In-scope function check</span>
+            <h3>Copilot briefing</h3>
+            <span>Phase 2 analyst layer</span>
           </div>
-          <p class="helper">This checklist reflects the README's phase-1 scope and makes the delivery status visible inside the app.</p>
-          <div id="phase1-status" class="status-list"></div>
+          <p class="helper">The floating AI Copilot uses the selected portfolio, market-data mode, and computed risk report to answer grounded portfolio questions.</p>
+          <div class="status-list">
+            <div class="status-item">
+              <div class="status-pill">✓</div>
+              <div class="status-copy">
+                <strong>Live Poe integration</strong>
+                <div class="small">Configured through POE_API_KEY with an offline analyst fallback when the provider is unavailable.</div>
+              </div>
+            </div>
+            <div class="status-item">
+              <div class="status-pill">✓</div>
+              <div class="status-copy">
+                <strong>Grounded risk answers</strong>
+                <div class="small">Answers are constrained to VaR, CVaR, drawdown, benchmark metrics, holdings, warnings, and portfolio catalog context.</div>
+              </div>
+            </div>
+            <div class="status-item">
+              <div class="status-pill">✓</div>
+              <div class="status-copy">
+                <strong>Usable chat surface</strong>
+                <div class="small">The chat is floating, resizable, markdown-aware, and includes collapsible suggested questions.</div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -1051,7 +1119,7 @@ def _dashboard_html() -> str:
             </div>
             <div class="copilot-actions">
               <div class="copilot-status" id="copilot-status">Offline-ready</div>
-              <button class="copilot-icon-button" id="close-copilot-button" type="button" aria-label="Close copilot">×</button>
+              <button class="copilot-icon-button copilot-minimize-button" id="close-copilot-button" type="button" aria-label="Minimize copilot">_</button>
             </div>
           </div>
           <div class="chat-log" id="chat-log">
@@ -1094,7 +1162,6 @@ def _dashboard_html() -> str:
       portfolios: [],
       currentPortfolioId: "core_long_equity",
       useDemoData: true,
-      phase1Status: null,
     };
 
     const portfolioSelect = document.getElementById("portfolio-select");
@@ -1104,7 +1171,6 @@ def _dashboard_html() -> str:
     const sidebarPortfolioName = document.getElementById("sidebar-portfolio-name");
     const sidebarPortfolioNote = document.getElementById("sidebar-portfolio-note");
     const sidebarDataBadge = document.getElementById("sidebar-data-badge");
-    const sidebarPhaseStatus = document.getElementById("sidebar-phase-status");
     const chatLog = document.getElementById("chat-log");
     const copilotQuestion = document.getElementById("copilot-question");
     const askCopilotButton = document.getElementById("ask-copilot-button");
@@ -1208,6 +1274,18 @@ def _dashboard_html() -> str:
       return element;
     }
 
+    function setMarkdownMessage(element, text) {
+      if (window.marked && window.DOMPurify) {
+        element.classList.add("markdown");
+        const html = window.marked.parse(text || "", { breaks: true, gfm: true });
+        element.innerHTML = window.DOMPurify.sanitize(html);
+      } else {
+        element.classList.remove("markdown");
+        element.textContent = text || "";
+      }
+      chatLog.scrollTop = chatLog.scrollHeight;
+    }
+
     function openCopilot() {
       copilot.classList.add("open");
       copilotWindow.setAttribute("aria-hidden", "false");
@@ -1243,7 +1321,7 @@ def _dashboard_html() -> str:
           }),
         });
         const payload = await response.json();
-        pending.textContent = payload.answer || "No answer returned.";
+        setMarkdownMessage(pending, payload.answer || "No answer returned.");
         copilotStatus.textContent = payload.mode === "poe_live" ? "Live AI" : "Offline analyst";
         copilotModel.textContent = payload.model || "unknown";
         copilotMode.textContent = payload.mode || "unknown";
@@ -1260,7 +1338,6 @@ def _dashboard_html() -> str:
       sidebarPortfolioName.textContent = report.portfolio_name;
       sidebarPortfolioNote.textContent = selected ? selected.objective : report.portfolio_objective || "";
       sidebarDataBadge.textContent = state.useDemoData ? "Demo data" : "Live yfinance data";
-      sidebarPhaseStatus.textContent = state.phase1Status && state.phase1Status.complete ? "Complete" : "In progress";
     }
 
     function renderMetrics(report) {
@@ -1279,26 +1356,6 @@ def _dashboard_html() -> str:
 
       document.getElementById("primary-metrics").innerHTML = primary.map(([label, value, note]) => metricCard(label, value, note)).join("");
       document.getElementById("secondary-metrics").innerHTML = secondary.map(([label, value, note]) => metricCard(label, value, note)).join("");
-    }
-
-    function renderPhase1Status(status) {
-      const container = document.getElementById("phase1-status");
-      const allComplete = status.complete ? "All in-scope functions are complete." : "Some Phase 1 items remain open.";
-      const summary = `<div class="card" style="margin-bottom: 8px; min-height: auto;">
-        <div class="metric-label">Phase 1</div>
-        <div class="metric-value" style="font-size: 1.7rem;">${status.complete ? "Complete" : "In progress"}</div>
-        <div class="metric-note">${allComplete}</div>
-      </div>`;
-      const items = status.items.map((item) => `
-        <div class="status-item">
-          <div class="status-pill ${item.complete ? "" : "no"}">${item.complete ? "✓" : "!"}</div>
-          <div class="status-copy">
-            <strong>${item.label}</strong>
-            <div class="small">${item.evidence}</div>
-          </div>
-        </div>
-      `).join("");
-      container.innerHTML = summary + items;
     }
 
     function renderHoldings(report) {
@@ -1413,13 +1470,6 @@ def _dashboard_html() -> str:
       }
     }
 
-    async function loadPhase1Status() {
-      const response = await fetch("/api/phase1/status");
-      state.phase1Status = await response.json();
-      renderPhase1Status(state.phase1Status);
-      sidebarPhaseStatus.textContent = state.phase1Status.complete ? "Complete" : "In progress";
-    }
-
     function updateDescription() {
       const selected = state.portfolios.find((portfolio) => portfolio.portfolio_id === portfolioSelect.value);
       portfolioDescription.textContent = selected ? selected.objective : "";
@@ -1474,7 +1524,7 @@ def _dashboard_html() -> str:
     applyCopilotSize(copilotSize.width, copilotSize.height);
     setPromptCollapsed(sessionStorage.getItem("copilotPromptsCollapsed") === "true");
 
-    Promise.all([loadPortfolios(), loadPhase1Status()])
+    loadPortfolios()
       .then(loadReport)
       .catch((error) => {
         console.error(error);

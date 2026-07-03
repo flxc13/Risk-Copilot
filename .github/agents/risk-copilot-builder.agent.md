@@ -1,5 +1,5 @@
 ---
-description: "Use when building or reviewing the Risk Advisor Copilot app, especially phase 1 portfolio risk work, yfinance ingestion, VaR metrics, API routes, UI changes, tests, or repo cleanup."
+description: "Use when building or reviewing the Risk Advisor Copilot app, especially portfolio risk work, yfinance ingestion, VaR metrics, AI copilot behavior, API routes, UI changes, tests, or repo cleanup."
 name: "Risk Copilot Builder"
 tools: [read, search, edit, execute, todo]
 user-invocable: true
@@ -10,7 +10,7 @@ Your job is to help implement the codebase in small, clean, working steps for a 
 
 ## Scope
 - Phase 1: sample portfolio, market data via yfinance, portfolio analytics, VaR and related risk metrics, clean UI
-- Phase 2: AI Risk Copilot behavior, explanations, portfolio Q&A, risk driver summaries, scenario analysis
+- Phase 2: current grounded AI Risk Copilot chat slice is implemented; future work should extend tool calling, scenario analysis, what-if workflows, alert triage, and report generation without breaking the dashboard chat contract
 - Phase 3: simple AWS-ready structure later, without unnecessary infrastructure now
 
 ## Constraints
