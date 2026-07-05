@@ -1,690 +1,336 @@
-# README.md
+# AI-Enhanced Risk Monitoring and Decision Support System
 
-## Project Title
-**Risk Advisor Copilot**  
-A production-style portfolio risk analytics platform with a clean UI, market data ingestion, portfolio construction, VaR monitoring, and an AI-powered risk copilot roadmap.
+Production-style Python MVP for deterministic portfolio risk computation and AI-assisted interpretation.
 
----
+## What This Repository Does
 
-## Overview
-This repository is intended to evolve in **three phases**:
+This project separates numerical risk computation from language generation:
 
-- **Phase 1:** Build the core risk engine and UI
-- **Phase 2:** Add an AI Risk Copilot
-- **Phase 3:** Deploy to AWS in a simple, scalable way
+- Deterministic Python logic computes exposure, VaR, limit checks, and risk drivers.
+- Service and orchestration layers package tool outputs and generate interpretable summaries.
+- API routes stay thin and delegate business logic to services.
+- Every request is logged with tool outputs and latency for auditability.
 
-The goal is to make the repo feel like a **production-grade risk application**, not just a notebook or demo script. That means clear architecture, separation of concerns, testability, observability, and a UI that supports real workflows.
+## Architecture Overview
 
----
+The repository is structured into clear layers:
 
-## Product Vision
-Risk Advisor Copilot helps users:
-- create and manage a sample portfolio
-- fetch market data using `yfinance`
-- calculate and monitor portfolio risk
-- track **VaR** and other meaningful risk metrics
-- visualize exposures, drawdowns, and scenario behavior
-- eventually interact with an AI copilot that explains risk in plain English, detects anomalies, and suggests next steps
+1. API layer (`app/api`): FastAPI app and route handlers.
+2. Service layer (`app/services`): endpoint workflows and request tracing.
+3. Orchestration layer (`app/agents`): tool sequencing and interpretation assembly.
+4. Risk engine layer (`app/risk`): deterministic numerical calculations only.
+5. Tool layer (`app/tools`): typed wrappers around risk engine functions.
+6. Models layer (`app/models`): request/response and domain result schemas.
+7. Data layer (`app/data`): mock trades and historical return scenarios.
+8. Persistence layer (`app/db`, `app/core/logging.py`): SQLite audit logging.
 
-This project is designed as a practical foundation for:
-- portfolio risk monitoring
-- internal risk dashboards
-- analyst tooling
-- AI-assisted financial workflows
+## Tech Stack
 
----
+- Python 3.11+
+- FastAPI
+- Pydantic
+- Uvicorn
+- Pandas / NumPy
+- Chroma (local vector store)
+- SQLite (request audit logs)
 
-## Phase Plan
+## Repository Structure
 
----
-
-# Phase 1 — Core Risk App
-
-## Objective
-Implement the core portfolio analytics workflow end-to-end:
-1. define a sample portfolio
-2. fetch historical market data with `yfinance`
-3. compute returns and portfolio value series
-4. calculate VaR and other key risk metrics
-5. surface results in a polished UI
-6. structure the repository like a production app
-
-## Core Features
-
-### 1. Sample Portfolio Builder
-The app should ship with a default portfolio so a user can run the project immediately without setup friction.
-
-Example portfolio:
-- AAPL
-- MSFT
-- NVDA
-- AMZN
-- SPY
-- TLT
-- GLD
-- CASH
-
-Possible fields:
-- ticker
-- asset class
-- quantity
-- average cost
-- market value
-- weight
-- currency
-
-Support:
-- fixed demo portfolio in seed data
-- optional manual editing in UI
-- optional CSV/JSON import later
-
-### 2. Market Data Ingestion
-Use `yfinance` as the initial market data source.
-
-Expected capabilities:
-- fetch adjusted close prices
-- pull historical daily data
-- refresh on demand
-- handle missing values gracefully
-- cache downloaded data locally or in a simple store
-
-Notes:
-- `yfinance` is fine for development and prototyping
-- architecture should allow replacing the provider later with a more robust market data source
-
-### 3. Risk Metrics Engine
-The first release should include a strong set of baseline portfolio risk metrics.
-
-#### Required Metrics
-- **Daily returns**
-- **Cumulative returns**
-- **Volatility**
-- **Annualized volatility**
-- **Historical VaR**
-- **Parametric VaR**
-- **Expected Shortfall / CVaR**
-- **Maximum drawdown**
-- **Sharpe ratio**
-- **Beta vs benchmark**
-- **Correlation matrix**
-- **Rolling volatility**
-- **Rolling VaR**
-
-#### Nice-to-have Metrics
-- marginal VaR
-- component VaR
-- contribution to volatility
-- concentration by name/sector/asset class
-- tracking error vs benchmark
-- stress test under simple shock scenarios
-
-### 4. Risk Monitoring Dashboard
-The UI should feel like a real internal risk dashboard.
-
-Suggested views:
-- **Portfolio Overview**
-  - total value
-  - daily PnL
-  - cumulative return
-  - top holdings
-  - risk summary cards
-
-- **Risk Dashboard**
-  - VaR
-  - CVaR
-  - volatility
-  - drawdown
-  - rolling risk charts
-
-- **Exposure Dashboard**
-  - weights by asset
-  - concentration chart
-  - sector allocation if metadata exists
-  - benchmark comparison
-
-- **Analytics**
-  - return distribution
-  - correlation heatmap
-  - rolling metrics
-  - scenario analysis
-
-- **Data Health**
-  - latest refresh time
-  - missing data flags
-  - ticker fetch status
-  - provider warnings
-
-### 5. Production-Grade Repository Shape
-The repo should be organized so it resembles software that could realistically be extended into a team-owned platform.
-
-Suggested qualities:
-- modular risk engine
-- API layer separated from UI
-- typed schemas where possible
-- unit tests for risk calculations
-- environment variable config
-- linting and formatting
-- logging
-- clear error handling
-- reproducible local setup
-- seed/demo data
-
----
-
-## Phase 1 Technical Direction
-
-### Suggested Stack
-You can adapt this, but a pragmatic setup would be:
-
-#### Backend
-- **Python**
-- **FastAPI** for API services
-- **pandas / numpy** for analytics
-- **yfinance** for market data ingestion
-- **pydantic** for models
-- **scipy / statsmodels** where useful for risk calculations
-
-#### Frontend
-Choose one of the following:
-- **Next.js**
-- **React + Vite**
-
-Recommended:
-- **Next.js** for a polished app structure and production feel
-
-UI suggestions:
-- Tailwind CSS
-- Recharts or Plotly for charts
-- simple design system for cards, tables, filters, alerts, and charts
-
-#### Storage
-Start simple:
-- local file cache or SQLite for metadata/cache
-- later migrate to Postgres if needed
-
-### Suggested Repository Structure
 ```text
-risk-advisor-copilot/
-├─ README.md
-├─ .env.example
-├─ docker-compose.yml
-├─ Makefile
-├─ pyproject.toml
-├─ apps/
-│  ├─ api/
-│  │  ├─ main.py
-│  │  ├─ routes/
-│  │  ├─ services/
-│  │  ├─ schemas/
-│  │  └─ tests/
-│  └─ web/
-│     ├─ app/
-│     ├─ components/
-│     ├─ lib/
-│     └─ public/
-├─ packages/
-│  ├─ risk-engine/
-│  │  ├─ metrics/
-│  │  ├─ portfolio/
-│  │  ├─ market_data/
-│  │  └─ tests/
-│  └─ shared/
-│     ├─ types/
-│     └─ config/
-├─ data/
-│  ├─ seed/
-│  ├─ cache/
-│  └─ sample/
-└─ docs/
-   ├─ architecture/
-   ├─ product/
-   └─ api/
+.
+|-- app/
+|   |-- agents/
+|   |   |-- orchestrator.py
+|   |   |-- prompts.py
+|   |   `-- risk_interpreter.py
+|   |-- api/
+|   |   |-- main.py
+|   |   `-- routes/
+|   |       |-- chat.py
+|   |       |-- health.py
+|   |       `-- risk.py
+|   |-- core/
+|   |   |-- config.py
+|   |   `-- logging.py
+|   |-- data/
+|   |   |-- mock_market.py
+|   |   `-- mock_trades.py
+|   |-- db/
+|   |   |-- session.py
+|   |   `-- tables.py
+|   |-- models/
+|   |   |-- risk_models.py
+|   |   `-- schemas.py
+|   |-- risk/
+|   |   |-- drivers.py
+|   |   |-- engine.py
+|   |   |-- exposure.py
+|   |   |-- limits.py
+|   |   `-- var.py
+|   |-- services/
+|   |   |-- chat_service.py
+|   |   `-- risk_service.py
+|   `-- tools/
+|       |-- drivers_tool.py
+|       |-- exposure_tool.py
+|       |-- limit_tool.py
+|       `-- var_tool.py
+|-- scripts/
+|   `-- example_payload.json
+|-- tests/
+|   |-- test_health.py
+|   `-- test_risk_engine.py
+|-- .env.example
+|-- pyproject.toml
+`-- README.md
 ```
 
----
+## Module and Function Guide
 
-## Phase 1 Functional Scope
+### API Layer
 
-### In Scope
-- sample portfolio creation
-- `yfinance` integration
-- historical price ingestion
-- daily return calculation
-- portfolio NAV/value series
-- VaR and CVaR calculation
-- drawdown analytics
-- benchmark comparison
-- interactive dashboard
-- clean repo structure
-- tests for core calculations
+- `app/api/main.py`
+  - `app`: FastAPI application instance.
+  - `on_startup()`: initializes SQLite schema via `init_db()`.
 
----
+- `app/api/routes/health.py`
+  - `get_health()`: returns `status`, `service`, and UTC timestamp.
 
-## Current Implementation Status
+- `app/api/routes/risk.py`
+  - `compute_risk_route()`: validates payload and calls service `compute_risk()`.
+  - `analyze_risk_route()`: validates payload and calls service `analyze_risk()`.
 
-The repository now includes a working Phase 1 risk dashboard and a completed Phase 2 AI Copilot slice:
+- `app/api/routes/chat.py`
+  - `chat_route()`: validates payload and delegates to `ChatService.chat()`.
 
-- FastAPI app entrypoint at [app/api/main.py](app/api/main.py)
-- health, risk, and chat routes under [app/api/routes/](app/api/routes)
-- explicit portfolio risk calculations in [app/risk/](app/risk)
-- demo market data and a live `yfinance` adapter in [app/data/](app/data)
-- reusable request/response models in [app/models/schemas.py](app/models/schemas.py)
-- floating markdown AI chat in [app/api/routes/dashboard.py](app/api/routes/dashboard.py)
-- API, dashboard, configuration, market-data, and calculation tests in [tests/](tests)
+### Service Layer
 
-## Local Setup
+- `app/services/risk_service.py`
+  - `_resolve_trades()`: uses request trades or falls back to mock trades.
+  - `_resolve_limits()`: uses request limits or defaults from config.
+  - `compute_risk()`: computes deterministic snapshot and logs structured trace.
+  - `analyze_risk()`: computes snapshot, interprets results, and logs trace.
 
-1. Create a virtual environment.
-2. Install dependencies with `pip install -r requirements.txt`.
-3. Run the API with `uvicorn app.api.main:app --reload`.
-4. Run tests with `pytest`.
+- `app/services/chat_service.py`
+  - `ChatService.__init__()`: initializes orchestrator and Chroma collection.
+  - `ChatService._retrieve_context()`: retrieves top policy/methodology context chunks.
+  - `ChatService.chat()`: decides whether to run risk analysis, formats response, logs trace.
+
+### Orchestration and Interpretation Layer
+
+- `app/agents/orchestrator.py`
+  - `RiskOrchestrator.compute()`: runs exposure, VaR, limit, and driver tools.
+  - `RiskOrchestrator.analyze()`: computes risk and adds interpretation text.
+
+- `app/agents/risk_interpreter.py`
+  - `interpret_risk()`: converts deterministic outputs into explanation, hypothesis, suggestion.
+
+- `app/agents/prompts.py`
+  - `RISK_INTERPRETER_SYSTEM_PROMPT`: baseline instruction text for interpretation behavior.
+
+### Deterministic Risk Engine Layer
+
+- `app/risk/exposure.py`
+  - `compute_portfolio_exposure()`: computes net, gross, and per-symbol signed notional exposure.
+
+- `app/risk/var.py`
+  - `_symbol_positions()`: converts trades to signed notional positions by symbol.
+  - `calculate_portfolio_var()`: historical-simulation VaR from position-weighted return PnL series.
+
+- `app/risk/limits.py`
+  - `detect_limit_breaches()`: checks gross exposure and VaR thresholds.
+
+- `app/risk/drivers.py`
+  - `identify_risk_drivers()`: finds top exposure and VaR-proxy contributors.
+
+- `app/risk/engine.py`
+  - `compute_risk_snapshot()`: composes full deterministic output (exposure, VaR, breaches, drivers).
+
+### Tool Layer (Typed Wrappers)
+
+- `app/tools/exposure_tool.py`
+  - `ExposureToolInput`, `ExposureToolOutput`, `run_exposure_tool()`.
+
+- `app/tools/var_tool.py`
+  - `VaRToolInput`, `VaRToolOutput`, `run_var_tool()`.
+
+- `app/tools/limit_tool.py`
+  - `LimitToolInput`, `LimitToolOutput`, `run_limit_tool()`.
+
+- `app/tools/drivers_tool.py`
+  - `DriversToolInput`, `DriversToolOutput`, `run_drivers_tool()`.
+
+### Models and Schemas
+
+- `app/models/schemas.py`
+  - Request/response schemas for `/risk/compute`, `/risk/analyze`, `/chat`, and `/health`.
+  - Shared payload models: `TradeSchema`, `LimitConfigSchema`.
+
+- `app/models/risk_models.py`
+  - Domain output models: `ExposureResult`, `VaRResult`, `LimitBreach`, `DriversResult`,
+    `RiskComputationResult`, `InterpretationResult`, `RiskAnalysisResult`.
+
+### Data and Persistence
+
+- `app/data/mock_trades.py`
+  - `get_mock_trades()`: default portfolio used when requests omit trade lists.
+
+- `app/data/mock_market.py`
+  - `get_mock_historical_returns()`: per-symbol historical return scenarios for VaR and driver logic.
+
+- `app/db/session.py`
+  - `get_connection()`: SQLite connection factory.
+
+- `app/db/tables.py`
+  - `ensure_tables()`: creates `request_logs` table if missing.
+  - `init_db()`: initializes persistence at startup.
+
+- `app/core/logging.py`
+  - `get_logger()`: standard logger retrieval.
+  - `log_request()`: structured request-level audit insertion into SQLite.
+
+### Tests
+
+- `tests/test_health.py`
+  - Validates `/health` endpoint contract.
+
+- `tests/test_risk_engine.py`
+  - Validates deterministic risk primitives with mock inputs.
 
 ## API Endpoints
 
-- `GET /api/health`
-- `GET /api/portfolios`
-- `GET /api/phase1/status`
-- `GET /api/risk/report`
-- `POST /api/chat`
-- `GET /dashboard`
+- `GET /health`
+- `POST /risk/compute`
+- `POST /risk/analyze`
+- `POST /chat`
 
-## Phase 2 AI Copilot
+## Request Flow
 
-Status: implemented for the current local app slice.
+1. Route validates request using Pydantic schemas.
+2. Service resolves defaults (trades, limits) and starts timing.
+3. Orchestrator executes deterministic tools.
+4. Interpreter creates explanation text from computed outputs.
+5. Service logs tools, outputs, context, model name, and latency.
+6. API returns structured JSON response.
 
-The dashboard includes a floating AI Risk Copilot backed by `POST /api/chat`. It sends the selected portfolio, current market-data mode, and a grounded risk-report summary to a Poe OpenAI-compatible client.
+## Configuration
 
-Set your Poe API key before running the API:
+Environment-driven settings are defined in `app/core/config.py`:
 
-```powershell
-$env:POE_API_KEY="your_poe_api_key"
-python -m uvicorn app.api.main:app --reload
+- `APP_NAME`
+- `SQLITE_DB_PATH`
+- `VAR_CONFIDENCE`
+- `MAX_GROSS_EXPOSURE`
+- `MAX_VAR`
+- `CHROMA_PATH`
+- `LLM_MODEL_NAME`
+
+Defaults are applied if environment variables are absent or unparsable.
+
+## Features
+
+- Deterministic risk engine:
+  - Portfolio exposure aggregation
+  - Historical VaR
+  - Limit breach detection
+  - Risk driver identification
+- Typed tool wrappers around risk engine functions
+- Orchestrator for tool-calling and interpretation assembly
+- SQLite request logging for auditability
+- Local retrieval via Chroma for policy context in chat responses
+
+## Implementation Checklist
+
+Status reflects current code in this repository.
+
+- [x] FastAPI app scaffold with mounted routes (`/health`, `/risk/compute`, `/risk/analyze`, `/chat`)
+- [x] Deterministic risk engine modules (exposure, historical VaR, limit checks, risk drivers)
+- [x] Typed tool wrappers and orchestrator wiring
+- [x] Service-layer request logging into SQLite (`request_logs`)
+- [x] Local policy-context retrieval in chat flow (Chroma)
+- [x] Basic automated tests for health endpoint and risk engine primitives
+- [ ] API integration tests for `/risk/compute`, `/risk/analyze`, and `/chat`
+- [ ] CI workflow for automated test/lint on push/PR
+- [ ] Machine-readable progress tracker (for example `progress.json`)
+
+Checklist update rule:
+- If implementation status changes, update this checklist in the same change set.
+
+## Install
+
+From the repository root:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate  # Linux/macOS
+.venv\Scripts\Activate.ps1  # Windows PowerShell
+
+pip install -U pip
+pip install -e .
 ```
 
-The integration uses:
-
-- `POE_API_KEY` for authentication
-- `POE_BASE_URL`, defaulting to `https://api.poe.com/v1`
-- `POE_MODEL`, defaulting to `gpt-5.4`
-
-If `POE_API_KEY` is not set, the copilot uses an offline analyst fallback that still summarizes VaR, CVaR, drawdown, volatility, benchmark beta, and top exposures from the current risk report.
-
-Implemented Phase 2 capabilities:
-
-- natural-language portfolio risk Q&A through `POST /api/chat`
-- grounded prompt context from the selected portfolio's computed risk report
-- live Poe provider mode with offline fallback
-- floating dashboard chat widget with resize, minimize, collapsible suggested questions, and markdown rendering
-- one-click investigation prompts for VaR, expected shortfall, concentration, benchmark risk, and PM review notes
-- tests covering offline fallback behavior and dashboard rendering
-
-Deferred beyond the current Phase 2 slice:
-
-- multi-step tool calling
-- persistent chat history
-- true portfolio what-if mutation workflows
-- automated alert triage jobs
-- generated PDF/markdown report export
-
-## Sample Portfolios
-
-The phase-1 scaffold now ships with strategy-based sample portfolios designed to mimic a small hedge fund's in-house risk tool:
-
-- `core_long_equity` - Quality growth / long-only. Objective: compound capital with high-conviction large-cap equity exposure and a modest cash buffer.
-- `defensive_income` - Capital preservation / income. Objective: prioritize drawdown control and steadier returns through defensive equities, bonds, gold, and cash.
-- `tactical_macro` - Macro / regime rotation. Objective: rotate capital between risk assets and diversifiers when macro conditions shift.
-
-## Dashboard
-
-The interactive dashboard is available at [app/api/routes/dashboard.py](app/api/routes/dashboard.py) through `GET /dashboard`. It includes:
-
-- portfolio selector
-- demo/live market-data toggle
-- portfolio NAV and benchmark charts
-- drawdown chart
-- correlation heatmap
-- holdings and exposures view
-- floating AI Copilot with markdown answers and suggested questions
-
-## Frontend Sync Rule
-
-When changing any dashboard-relevant backend or data surface, update the dashboard in the same work slice or document why no UI change is required. This includes changes to:
-
-- API response payloads and route behavior
-- Pydantic schemas
-- portfolio catalog fields
-- market-data ingestion outputs
-- risk metrics and calculation names
-- phase status or health checks
-
-The dashboard at [app/api/routes/dashboard.py](app/api/routes/dashboard.py) is a first-class client of the API, so it should stay aligned with backend changes.
-
-### Out of Scope
-- live trading
-- broker connectivity
-- real-time streaming quotes
-- user auth
-- multi-tenant enterprise controls
-- options/derivatives pricing engine
-- advanced regulatory reporting
-
----
-
-## Example User Flow
-1. user opens the app
-2. demo portfolio is already loaded
-3. app fetches historical prices for portfolio assets
-4. backend computes portfolio-level returns and risk metrics
-5. UI displays:
-   - total portfolio value
-   - allocation
-   - rolling volatility
-   - historical VaR
-   - expected shortfall
-   - drawdown chart
-   - correlation heatmap
-6. user edits weights or holdings
-7. metrics recalculate
-8. user inspects current risk posture and concentration
-
----
-
-## Risk Metrics Notes
-
-### VaR
-The application should support at least:
-- **Historical VaR**
-- **Parametric VaR**
-
-Recommended defaults:
-- confidence levels: 95% and 99%
-- horizon: 1 day initially
-
-### Expected Shortfall
-Show tail-loss severity beyond VaR to make the dashboard more meaningful than VaR alone.
-
-### Drawdown
-Track:
-- current drawdown
-- max drawdown
-- drawdown duration if feasible
-
-### Benchmarking
-Use a simple benchmark such as:
-- `SPY` for equity-heavy portfolios
-- configurable benchmark later
-
-### Scenario Testing
-Even in Phase 1, a few basic scenarios would add a lot of value:
-- equity market down 5%
-- rates up 100 bps
-- tech sector shock
-- flight-to-safety scenario
-
-These can be simple deterministic shocks at first.
-
----
-
-## UI Principles
-The UI should feel:
-- clean
-- professional
-- readable
-- analyst-friendly
-- low-friction
-
-Recommended layout:
-- left sidebar navigation
-- top summary cards
-- charts in a grid
-- portfolio table with sorting/filtering
-- risk alerts or badges for threshold breaches
-
-Design suggestions:
-- neutral colors with meaningful use of red/amber/green
-- avoid flashy retail-trading aesthetics
-- prefer clarity over decoration
-
----
-
-## Phase 2 — AI Risk Copilot
-
-## Objective
-Add a conversational and analytical AI layer on top of the risk engine.
-
-The AI Risk Copilot should not just answer questions. It should help users **understand, investigate, and act on portfolio risk**.
-
-## Proposed Capabilities
-
-### 1. Natural Language Risk Q&A
-Examples:
-- “Why did portfolio VaR increase this week?”
-- “Which holdings contribute most to downside risk?”
-- “What changed after I added NVDA?”
-- “How concentrated is this portfolio?”
-- “What happens if equities fall 7%?”
-
-### 2. Portfolio Risk Explanations
-The copilot should translate quantitative outputs into plain-English summaries:
-- what changed
-- likely drivers
-- which positions matter most
-- whether the portfolio is becoming more concentrated or more diversified
-
-### 3. Risk Change Detection
-The AI can highlight:
-- unusual VaR jumps
-- rising correlation across holdings
-- concentration creep
-- volatility regime shifts
-- benchmark divergence
-
-### 4. Scenario Narration
-Given a stress scenario, the copilot can explain:
-- expected portfolio impact
-- most sensitive names
-- offsetting exposures
-- interpretation of results
-
-### 5. Guided What-If Analysis
-Examples:
-- “Reduce tech exposure by 10%”
-- “Increase bonds to lower drawdown risk”
-- “Show a more diversified version of this portfolio”
-- “How can I lower VaR without materially changing expected exposure?”
-
-### 6. Document and Report Generation
-The copilot could generate:
-- daily risk summaries
-- weekly PM notes
-- investment committee snapshots
-- plain-English portfolio diagnostics
-
-### 7. Alert Triage
-If thresholds are breached, AI can answer:
-- what happened
-- why it matters
-- what to review next
-- whether this looks like a data issue or a real market move
-
----
-
-## Phase 2 Architecture Ideas
-Possible implementation path:
-- LLM-powered chat interface
-- retrieval over portfolio state, risk metrics, and scenario outputs
-- tool-calling functions for:
-  - fetching latest portfolio stats
-  - recalculating risk
-  - comparing two portfolio versions
-  - running predefined stress tests
-  - summarizing alerts
-
-### Guardrails
-The AI copilot should:
-- avoid giving trading advice framed as certainty
-- distinguish facts from interpretation
-- reference computed metrics, not invented numbers
-- clearly label assumptions in scenario analysis
-
-### Nice Future Features
-- voice-enabled risk briefings
-- anomaly summaries each morning
-- AI-generated board-ready charts and commentary
-- portfolio optimization suggestions under constraints
-- policy and threshold recommendation assistant
-- risk memo generation in markdown/PDF
-
----
-
-## Phase 3 — AWS Deployment
-
-## Objective
-Deploy the app to AWS in a simple, clean, later-stage setup.
-
-This phase should be intentionally lightweight at first. Keep it practical and easy to operate.
-
-## Guiding Principles
-- keep AWS setup simple
-- avoid over-engineering early
-- optimize for maintainability
-- support future scaling
-
-## Suggested Later-Stage AWS Plan
-A simple path could be:
-
-- **Frontend**
-  - deploy web app on **AWS Amplify** or **S3 + CloudFront**
-
-- **Backend API**
-  - deploy FastAPI using:
-    - **App Runner**, or
-    - **ECS Fargate**
-
-- **Database**
-  - start with **RDS Postgres** if persistent storage is needed
-  - or keep SQLite/local storage during earlier stages
-
-- **Secrets and Config**
-  - AWS Secrets Manager
-  - SSM Parameter Store
-
-- **Monitoring**
-  - CloudWatch logs and alarms
-
-- **CI/CD**
-  - GitHub Actions
-  - deploy on main branch or tagged releases
-
-## Keep for Later
-The AWS phase is intentionally deferred until the core app and copilot are stable.
-
----
-
-## Engineering Principles
-This repository should aim to reflect production-minded engineering:
-
-- clean separation of UI, API, and analytics engine
-- explicit schemas and contracts
-- deterministic calculations
-- test coverage for key risk logic
-- observable services with logs and health endpoints
-- graceful fallback for bad market data
-- easy local onboarding
-- documented architecture and roadmap
-
----
-
-## MVP Definition
-The Phase 1 MVP is complete when a user can:
-
-- run the project locally
-- load a sample portfolio
-- fetch historical data from `yfinance`
-- compute portfolio returns
-- view VaR, CVaR, volatility, and drawdown
-- inspect portfolio allocation and correlations
-- use a decent UI that feels like a real application
-
----
-
-## Suggested Milestones
-
-### Milestone 1 — Repo Foundation
-- initialize monorepo/app structure
-- set up backend and frontend
-- add config, linting, formatting, and test scaffolding
-
-### Milestone 2 — Market Data + Portfolio Model
-- sample portfolio seed data
-- `yfinance` ingestion service
-- normalized portfolio schema
-- local caching
-
-### Milestone 3 — Risk Engine
-- returns pipeline
-- portfolio aggregation
-- VaR
-- CVaR
-- volatility
-- drawdown
-- benchmark comparison
-
-### Milestone 4 — Dashboard UI
-- overview page
-- holdings table
-- risk charts
-- heatmaps
-- alerts and badges
-
-### Milestone 5 — AI Copilot Design
-- define tools and prompts: complete for the current grounded-chat slice
-- create risk explanation workflows: complete for current risk-report Q&A
-- build chat entry point: complete via `POST /api/chat`
-- connect to analytics outputs: complete through selected portfolio risk-report context
-
-### Milestone 6 — AWS Deployment
-- choose simple AWS topology
-- containerize services
-- configure deployment
-- add monitoring and CI/CD
-
----
-
-## Local Development Goals
-The local developer experience should be easy:
-- one command to install backend dependencies
-- one command to run API
-- one command to run UI
-- seeded portfolio available by default
-- sample screenshots and example outputs in `/docs`
-
----
-
-## Future Enhancements
-Potential extensions after the first three phases:
-- user authentication
-- multiple portfolios
-- portfolio upload workflow
-- factor risk models
-- options and derivatives support
-- intraday data providers
-- alert subscriptions
-- PDF export
-- scheduled risk reports
-- optimization engine
-- role-based access control
-- audit logs
-
----
-
-## Proposed Tagline
-**A production-style portfolio risk dashboard with an AI copilot for monitoring, explaining, and exploring risk.**
-
----
-
-## Next Step
-Phase 1 and the current Phase 2 AI Copilot slice are complete for local development. The next best product step is to add real what-if/scenario workflows behind the copilot, then move to a simple **AWS deployment** once those interactions are stable.
-
----
-```  
+Optional dev dependencies:
+
+```bash
+pip install -e .[dev]
+```
+
+## Run
+
+```bash
+uvicorn app.api.main:app --reload
+```
+
+API docs:
+- http://127.0.0.1:8000/docs
+
+## Example Requests
+
+Health:
+
+```bash
+curl http://127.0.0.1:8000/health
+```
+
+Risk compute:
+
+```bash
+curl -X POST http://127.0.0.1:8000/risk/compute \
+  -H "Content-Type: application/json" \
+  -d '{
+    "trades": [
+      {"trade_id": "X1", "symbol": "AAPL", "side": "BUY", "quantity": 100, "price": 195},
+      {"trade_id": "X2", "symbol": "MSFT", "side": "BUY", "quantity": 60, "price": 432},
+      {"trade_id": "X3", "symbol": "TSLA", "side": "SELL", "quantity": 25, "price": 205}
+    ],
+    "confidence": 0.95,
+    "limit_config": {
+      "max_gross_exposure": 1000000,
+      "max_var": 100000
+    }
+  }'
+```
+
+Risk analyze:
+
+```bash
+curl -X POST http://127.0.0.1:8000/risk/analyze \
+  -H "Content-Type: application/json" \
+  -d '{
+    "question": "What changed and what should we monitor?"
+  }'
+```
+
+Chat:
+
+```bash
+curl -X POST http://127.0.0.1:8000/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Give me a risk summary for this portfolio"}'
+```
+
+## Tests
+
+```bash
+pytest
+```

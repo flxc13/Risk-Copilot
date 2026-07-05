@@ -1026,6 +1026,14 @@ def _dashboard_html() -> str:
           <p class="helper">This view overlays portfolio NAV with the benchmark so the desk can see relative performance and drift at a glance.</p>
           <div id="value-chart" class="chart"></div>
         </div>
+        <div class="panel">
+          <div class="section-heading">
+            <h3>Risk pulse</h3>
+            <span>Current risk readout</span>
+          </div>
+          <p class="helper">A compact summary of headline risk metrics and active warnings for the selected book.</p>
+          <div id="risk-pulse" class="status-list"></div>
+        </div>
       </section>
 
       <section class="layout alt content-section section-gap">
@@ -1328,6 +1336,34 @@ def _dashboard_html() -> str:
       document.getElementById("secondary-metrics").innerHTML = secondary.map(([label, value, note]) => metricCard(label, value, note)).join("");
     }
 
+    function renderRiskPulse(report) {
+      const warnings = report.warnings || [];
+      const warningState = warnings.length > 0
+        ? `${warnings.length} risk warning${warnings.length > 1 ? "s" : ""}`
+        : "No active warnings";
+      const warningDetail = warnings.length > 0
+        ? warnings.slice(0, 2).join(" | ")
+        : "Portfolio risk checks are currently within configured thresholds.";
+
+      const rows = [
+        ["Volatility + Drawdown", `${percentage.format(report.annualized_volatility)} | ${percentage.format(report.maximum_drawdown)}`, "Annualized volatility and max drawdown."],
+        ["VaR + CVaR", `${percentage.format(report.historical_var_95)} | ${percentage.format(report.expected_shortfall_95)}`, "Historical VaR and expected shortfall at 95%."],
+        ["Benchmark Link", `${report.beta_vs_benchmark == null ? "n/a" : decimal.format(report.beta_vs_benchmark)} beta | ${report.tracking_error == null ? "n/a" : percentage.format(report.tracking_error)} TE`, "Directional sensitivity and active risk vs benchmark."],
+        ["Warning Monitor", warningState, warningDetail],
+      ];
+
+      document.getElementById("risk-pulse").innerHTML = rows.map(([label, value, note], index) => `
+        <div class="status-item">
+          <div class="status-pill ${index === 3 && warnings.length > 0 ? "no" : ""}">${index === 3 && warnings.length > 0 ? "!" : "✓"}</div>
+          <div class="status-copy">
+            <strong>${label}</strong>
+            <div class="small">${value}</div>
+            <div class="small">${note}</div>
+          </div>
+        </div>
+      `).join("");
+    }
+
     function renderHoldings(report) {
       const topHoldings = report.top_holdings || [];
       document.getElementById("holdings-table").innerHTML = topHoldings.map((row) => `
@@ -1454,6 +1490,7 @@ def _dashboard_html() -> str:
       const response = await fetch(`/api/risk/report?${params.toString()}`);
       const report = await response.json();
       renderMetrics(report);
+      renderRiskPulse(report);
       renderCharts(report);
       renderHoldings(report);
       updateDescription();

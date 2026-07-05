@@ -18,7 +18,7 @@ def assess_limits(
     overweight_names = [
         f"{ticker} ({weight:.1%})"
         for ticker, weight in exposures_by_ticker.items()
-        if weight > max_single_name_weight
+        if ticker.upper() != "CASH" and weight > max_single_name_weight
     ]
     if overweight_names:
         warnings.append(
