@@ -199,10 +199,12 @@ The repository is structured into clear layers:
 
 ## API Endpoints
 
-- `GET /health`
-- `POST /risk/compute`
-- `POST /risk/analyze`
-- `POST /chat`
+- `GET /dashboard`
+- `GET /api/health`
+- `GET /api/portfolios`
+- `GET /api/risk/report`
+- `POST /api/chat`
+- `POST /api/reports/generate`
 
 ## Request Flow
 
@@ -238,18 +240,21 @@ Defaults are applied if environment variables are absent or unparsable.
 - Orchestrator for tool-calling and interpretation assembly
 - SQLite request logging for auditability
 - Local retrieval via Chroma for policy context in chat responses
+- Floating dashboard AI Copilot for grounded portfolio Q&A
+- Markdown report generation for morning notes, end-of-day wraps, and weekly reviews, with styled HTML export from the dashboard
+- Deterministic sample-data report fallback when the AI provider is unavailable
 
 ## Implementation Checklist
 
 Status reflects current code in this repository.
 
-- [x] FastAPI app scaffold with mounted routes (`/health`, `/risk/compute`, `/risk/analyze`, `/chat`)
+- [x] FastAPI app scaffold with mounted dashboard, risk, chat, and report routes
 - [x] Deterministic risk engine modules (exposure, historical VaR, limit checks, risk drivers)
 - [x] Typed tool wrappers and orchestrator wiring
 - [x] Service-layer request logging into SQLite (`request_logs`)
 - [x] Local policy-context retrieval in chat flow (Chroma)
 - [x] Basic automated tests for health endpoint and risk engine primitives
-- [ ] API integration tests for `/risk/compute`, `/risk/analyze`, and `/chat`
+- [x] API tests for chat fallback, report fallback, dashboard rendering, market data, and risk output
 - [ ] CI workflow for automated test/lint on push/PR
 - [ ] Machine-readable progress tracker (for example `progress.json`)
 

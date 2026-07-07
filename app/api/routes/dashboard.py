@@ -838,6 +838,57 @@ def _dashboard_html() -> str:
       border-color: rgba(45, 212, 191, 0.34);
       background: rgba(45, 212, 191, 0.08);
     }
+    .report-panel {
+      display: grid;
+      gap: 10px;
+      border: 1px solid rgba(125, 211, 252, 0.12);
+      border-radius: 16px;
+      padding: 12px;
+      background: rgba(125, 211, 252, 0.035);
+    }
+    .report-controls {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr);
+      gap: 8px;
+    }
+    .report-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+    .report-panel select, .report-panel input {
+      width: 100%;
+      border: 1px solid rgba(125, 211, 252, 0.14);
+      border-radius: 12px;
+      padding: 10px 11px;
+      background: rgba(3, 7, 18, 0.62);
+      color: var(--text);
+      font: inherit;
+      font-size: 13px;
+    }
+    .report-output {
+      display: none;
+      max-height: 220px;
+      overflow-y: auto;
+      border: 1px solid rgba(125, 211, 252, 0.12);
+      border-radius: 14px;
+      padding: 12px;
+      background: rgba(3, 7, 18, 0.44);
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .report-output.visible {
+      display: block;
+    }
+    .report-output h1, .report-output h2, .report-output h3 {
+      margin: 10px 0 6px;
+      font-size: 14px;
+    }
+    .report-output ul, .report-output ol {
+      margin: 8px 0 8px 18px;
+      padding: 0;
+    }
     .copilot-meta {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -1120,6 +1171,27 @@ def _dashboard_html() -> str:
               <button class="prompt-chip" type="button">Write a short morning risk note for this portfolio.</button>
             </div>
           </div>
+          <div class="report-panel">
+            <div class="prompt-panel-header">
+              <div class="prompt-panel-title">Report generation</div>
+              <div class="small" id="report-status">Ready</div>
+            </div>
+            <div class="report-controls">
+              <select id="report-type" aria-label="Report type">
+                <option value="morning_note">Morning note</option>
+                <option value="eod_wrap">End-of-day wrap</option>
+                <option value="weekly_review">Weekly review</option>
+                <option value="basel_simplified_capital">Basel-style capital charge</option>
+              </select>
+              <input id="report-audience" type="text" value="PM" aria-label="Report audience" />
+            </div>
+            <div class="report-actions">
+              <button id="generate-report-button" type="button">Generate</button>
+              <button id="copy-report-button" type="button" disabled>Copy</button>
+              <button id="download-report-button" type="button" disabled>Download</button>
+            </div>
+            <div id="report-output" class="report-output"></div>
+          </div>
           <div class="copilot-meta">
             <div class="meta-row"><span>Provider</span><strong>Poe OpenAI-compatible API</strong></div>
             <div class="meta-row"><span>Model</span><strong id="copilot-model">gpt-5.4</strong></div>
@@ -1140,6 +1212,8 @@ def _dashboard_html() -> str:
       portfolios: [],
       currentPortfolioId: "core_long_equity",
       useDemoData: true,
+      generatedReport: "",
+      generatedReportTitle: "risk-report",
     };
 
     const portfolioSelect = document.getElementById("portfolio-select");
@@ -1162,6 +1236,13 @@ def _dashboard_html() -> str:
     const copilotStatus = document.getElementById("copilot-status");
     const copilotModel = document.getElementById("copilot-model");
     const copilotMode = document.getElementById("copilot-mode");
+    const reportType = document.getElementById("report-type");
+    const reportAudience = document.getElementById("report-audience");
+    const reportStatus = document.getElementById("report-status");
+    const reportOutput = document.getElementById("report-output");
+    const generateReportButton = document.getElementById("generate-report-button");
+    const copyReportButton = document.getElementById("copy-report-button");
+    const downloadReportButton = document.getElementById("download-report-button");
 
     const money = new Intl.NumberFormat(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 0 });
     const percentage = new Intl.NumberFormat(undefined, { style: "percent", minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -1274,6 +1355,201 @@ def _dashboard_html() -> str:
       copilot.classList.remove("open");
       copilotWindow.setAttribute("aria-hidden", "true");
       openCopilotButton.focus();
+    }
+
+    function renderReportPreview(markdown) {
+      reportOutput.classList.add("visible");
+      if (window.marked && window.DOMPurify) {
+        const html = window.marked.parse(markdown || "", { breaks: true, gfm: true });
+        reportOutput.innerHTML = window.DOMPurify.sanitize(html);
+      } else {
+        reportOutput.textContent = markdown || "";
+      }
+    }
+
+    function escapeHtml(value) {
+      const wrapper = document.createElement("div");
+      wrapper.textContent = value || "";
+      return wrapper.innerHTML;
+    }
+
+    function reportMarkdownToHtml(markdown) {
+      if (window.marked && window.DOMPurify) {
+        const html = window.marked.parse(markdown || "", { breaks: true, gfm: true });
+        return window.DOMPurify.sanitize(html);
+      }
+      return `<pre>${escapeHtml(markdown || "")}</pre>`;
+    }
+
+    function buildStyledReportHtml(title, markdown) {
+      const safeTitle = escapeHtml(title || "Risk Report");
+      const generatedAt = new Date().toLocaleString();
+      const reportBody = reportMarkdownToHtml(markdown);
+      return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>${safeTitle}</title>
+  <style>
+    :root {
+      --bg: #030712;
+      --panel: rgba(8, 13, 29, 0.94);
+      --line: rgba(125, 211, 252, 0.18);
+      --text: #eef7ff;
+      --muted: #95a9c6;
+      --accent: #38bdf8;
+      --accent-2: #2dd4bf;
+      --bad: #fb7185;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 14% 8%, rgba(56, 189, 248, 0.18), transparent 28%),
+        radial-gradient(circle at 85% 10%, rgba(45, 212, 191, 0.14), transparent 26%),
+        linear-gradient(180deg, #020617 0%, #030712 44%, #07111f 100%);
+      color: var(--text);
+      padding: 42px;
+    }
+    .shell {
+      max-width: 1040px;
+      margin: 0 auto;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: linear-gradient(180deg, var(--panel), rgba(2, 6, 23, 0.92));
+      box-shadow: 0 34px 100px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255,255,255,0.05);
+      overflow: hidden;
+    }
+    .masthead {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 30px 34px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(90deg, rgba(56, 189, 248, 0.12), rgba(45, 212, 191, 0.06), transparent);
+    }
+    .eyebrow {
+      color: var(--accent-2);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    h1 { margin: 0; font-size: 30px; letter-spacing: 0; }
+    .stamp { color: var(--muted); font-size: 13px; text-align: right; line-height: 1.6; }
+    .content { padding: 32px 34px 38px; }
+    h1, h2, h3 { color: var(--text); }
+    h2 {
+      margin: 28px 0 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(125, 211, 252, 0.14);
+      font-size: 18px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+    p, li { color: #dce9f8; line-height: 1.65; }
+    ul, ol { padding-left: 22px; }
+    strong { color: #f8fbff; }
+    code {
+      border: 1px solid rgba(125, 211, 252, 0.16);
+      border-radius: 8px;
+      padding: 2px 5px;
+      background: rgba(3, 7, 18, 0.54);
+      color: #bae6fd;
+    }
+    blockquote {
+      margin: 18px 0;
+      padding: 12px 16px;
+      border-left: 3px solid var(--accent-2);
+      background: rgba(45, 212, 191, 0.07);
+      color: var(--muted);
+    }
+    @media print {
+      body { background: white; color: #111827; padding: 0; }
+      .shell { box-shadow: none; border: 0; }
+      .masthead { background: #f8fafc; }
+      p, li, h1, h2, h3, strong { color: #111827; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="masthead">
+      <div>
+        <div class="eyebrow">Risk Advisor Copilot</div>
+        <h1>${safeTitle}</h1>
+      </div>
+      <div class="stamp">Generated report<br />${escapeHtml(generatedAt)}</div>
+    </header>
+    <article class="content">${reportBody}</article>
+  </main>
+</body>
+</html>`;
+    }
+
+    async function generateRiskReportDraft() {
+      openCopilot();
+      reportStatus.textContent = "Generating";
+      generateReportButton.disabled = true;
+      copyReportButton.disabled = true;
+      downloadReportButton.disabled = true;
+
+      try {
+        const response = await fetch("/api/reports/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            portfolio_id: portfolioSelect.value,
+            use_demo_data: dataMode.value === "true",
+            report_type: reportType.value,
+            audience: reportAudience.value || "PM",
+          }),
+        });
+        const payload = await response.json();
+        state.generatedReport = payload.report || "No report returned.";
+        state.generatedReportTitle = payload.title || "risk-report";
+        renderReportPreview(state.generatedReport);
+        reportStatus.textContent = payload.mode === "poe_live_report" ? "Live AI report" : "Fallback report";
+        copyReportButton.disabled = false;
+        downloadReportButton.disabled = false;
+      } catch (error) {
+        state.generatedReport = "";
+        reportOutput.classList.add("visible");
+        reportOutput.textContent = `Report generation failed: ${error}`;
+        reportStatus.textContent = "Error";
+      } finally {
+        generateReportButton.disabled = false;
+      }
+    }
+
+    async function copyGeneratedReport() {
+      if (!state.generatedReport) {
+        return;
+      }
+      await navigator.clipboard.writeText(state.generatedReport);
+      reportStatus.textContent = "Copied";
+    }
+
+    function downloadGeneratedReport() {
+      if (!state.generatedReport) {
+        return;
+      }
+      const slug = state.generatedReportTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "risk-report";
+      const html = buildStyledReportHtml(state.generatedReportTitle, state.generatedReport);
+      const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${slug}.html`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      reportStatus.textContent = "Downloaded HTML";
     }
 
     async function askCopilot(question) {
@@ -1504,6 +1780,9 @@ def _dashboard_html() -> str:
     dataMode.addEventListener("change", loadReport);
     openCopilotButton.addEventListener("click", openCopilot);
     closeCopilotButton.addEventListener("click", closeCopilot);
+    generateReportButton.addEventListener("click", generateRiskReportDraft);
+    copyReportButton.addEventListener("click", copyGeneratedReport);
+    downloadReportButton.addEventListener("click", downloadGeneratedReport);
     copilotResizeHandle.addEventListener("pointerdown", startCopilotResize);
     togglePromptsButton.addEventListener("click", () => {
       setPromptCollapsed(!promptPanel.classList.contains("collapsed"));

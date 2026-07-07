@@ -13,3 +13,5 @@ def test_dashboard_page_renders() -> None:
     assert "Phase 1 completion" not in response.text
     assert "In-scope function check" not in response.text
     assert "AI Risk Copilot" in response.text
+    assert "Report generation" in response.text
+    assert "generate-report-button" in response.text
