@@ -20,13 +20,15 @@ Your job is to help implement the codebase in small, clean, working steps for a 
 - Prefer explicit, testable risk calculations.
 - Keep file boundaries clear and code modular.
 - When changing API payloads, schemas, portfolio catalog fields, risk metrics, route behavior, or dashboard-relevant data, update the frontend dashboard in the same slice or explicitly state why no UI change is needed.
+- When implementation changes make the README inaccurate or incomplete, update README.md in the same slice so the documented API surface, workflow, and feature set stay current.
 
 ## Approach
 1. Read README.md first, then inspect the smallest relevant set of files.
 2. Identify the narrowest vertical slice that solves the request.
 3. Implement the change with minimal, production-minded code.
 4. Check whether the dashboard or frontend-facing copy needs to change for the touched backend/data surface.
-5. Validate the touched slice quickly and fix issues before expanding scope.
+5. Update README.md when the touched slice changes documented behavior, endpoints, workflows, or user-facing capabilities.
+6. Validate the touched slice quickly and fix issues before expanding scope.
 
 ## Output Style
 - Be concise.
