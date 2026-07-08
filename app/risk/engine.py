@@ -73,6 +73,40 @@ def _portfolio_value_series(
     return portfolio_values, latest_prices
 
 
+def portfolio_returns_from_current_values(
+    stress_price_frame: pd.DataFrame,
+    holdings: Sequence[Mapping[str, float | str]],
+    latest_prices: Mapping[str, float],
+) -> pd.Series:
+    holdings_frame = _holdings_frame(holdings)
+    if holdings_frame.empty or stress_price_frame.empty:
+        return pd.Series(dtype=float)
+
+    aligned_prices = stress_price_frame.copy()
+    for ticker in holdings_frame["ticker"]:
+        if ticker not in aligned_prices.columns:
+            aligned_prices[ticker] = 1.0 if ticker == "CASH" else np.nan
+
+    aligned_prices = aligned_prices.reindex(columns=holdings_frame["ticker"].tolist()).ffill().bfill()
+    missing_columns = [column for column in aligned_prices.columns if aligned_prices[column].isna().all()]
+    missing_non_cash = [column for column in missing_columns if column != "CASH"]
+    if missing_non_cash:
+        raise ValueError(f"Missing stress market prices for: {', '.join(missing_non_cash)}")
+    if "CASH" in aligned_prices.columns:
+        aligned_prices["CASH"] = 1.0
+
+    stress_returns = aligned_prices.pct_change().dropna()
+    quantities = holdings_frame.set_index("ticker")["quantity"]
+    current_values = quantities.mul(pd.Series(latest_prices), fill_value=0.0).reindex(stress_returns.columns).fillna(0.0)
+    if "CASH" in current_values.index:
+        current_values["CASH"] = 0.0
+    total_current_value = float(abs(current_values).sum())
+    if total_current_value == 0.0:
+        return pd.Series(dtype=float)
+
+    return stress_returns.mul(current_values, axis=1).sum(axis=1) / total_current_value
+
+
 def maximum_drawdown(value_series: pd.Series) -> float:
     if value_series.empty:
         return 0.0
@@ -134,6 +168,14 @@ def build_risk_report(
     price_frame: pd.DataFrame,
     holdings: Sequence[Mapping[str, float | str]],
     benchmark_prices: pd.Series | None = None,
+    stress_price_frame: pd.DataFrame | None = None,
+    stress_window_label: str = "Recent sample tail-risk window",
+    stress_data_mode: str = "sample_window",
+    stress_window_id: str = "sample_window",
+    stress_candidate_window_ids: Sequence[str] | None = None,
+    stress_methodology: str = "Sample-window stress selection from available returns.",
+    stress_proxies_used: Sequence[Mapping[str, float | str]] | None = None,
+    stress_coverage_warnings: Sequence[str] | None = None,
     confidence: float = 0.95,
     portfolio_id: str = "core_long_equity",
     portfolio_name: str = "Demo Portfolio",
@@ -157,19 +199,24 @@ def build_risk_report(
     parametric = parametric_var(portfolio_returns, confidence=confidence)
     shortfall = expected_shortfall(portfolio_returns, confidence=confidence)
     basel_var_99_10d = basel_historical_var(portfolio_returns, confidence=0.99, horizon_days=10)
-    basel_stressed_var_99_10d = basel_stressed_historical_var(
-        portfolio_returns,
-        confidence=0.99,
-        horizon_days=10,
-        stress_window=125,
-    )
+
+    stress_returns = portfolio_returns
+    if stress_price_frame is not None and not stress_price_frame.empty:
+        stress_frame = stress_price_frame.copy()
+        stress_frame["CASH"] = 1.0
+        stress_returns = portfolio_returns_from_current_values(stress_frame, holdings, latest_prices)
+
+    if stress_price_frame is not None and not stress_price_frame.empty:
+        basel_stressed_var_99_10d = basel_historical_var(stress_returns, confidence=0.99, horizon_days=10)
+    else:
+        basel_stressed_var_99_10d = basel_stressed_historical_var(
+            stress_returns,
+            confidence=0.99,
+            horizon_days=10,
+            stress_window=125,
+        )
     var_60d_average = basel_historical_var(portfolio_returns.tail(60), confidence=0.99, horizon_days=10)
-    stressed_var_60d_average = basel_stressed_historical_var(
-        portfolio_returns.tail(60),
-        confidence=0.99,
-        horizon_days=10,
-        stress_window=60,
-    )
+    stressed_var_60d_average = basel_historical_var(stress_returns.tail(60), confidence=0.99, horizon_days=10)
     backtesting_exceptions, backtesting_observations = basel_backtesting_exceptions(
         portfolio_returns,
         confidence=0.99,
@@ -236,7 +283,13 @@ def build_risk_report(
 
     rolling_vol = rolling_volatility(portfolio_returns).dropna().tail(10).tolist()
     rolling_var_values = rolling_var(portfolio_returns, confidence=confidence).dropna().tail(10).tolist()
-    warnings = assess_limits(historical, exposure_ticker)
+    limit_warnings = assess_limits(historical, exposure_ticker)
+    basel_svar_governance_warnings = list(stress_coverage_warnings or [])
+    if basel_stressed_var_99_10d < basel_var_99_10d:
+        basel_svar_governance_warnings.append(
+            "Stressed VaR is below current VaR under the approved stress window; review stress-period relevance if this persists."
+        )
+    warnings = limit_warnings + basel_svar_governance_warnings
 
     return {
         "portfolio_id": portfolio_id,
@@ -257,6 +310,14 @@ def build_risk_report(
         "expected_shortfall_95": shortfall,
         "basel_var_99_10d": basel_var_99_10d,
         "basel_stressed_var_99_10d": basel_stressed_var_99_10d,
+        "basel_stress_window_id": stress_window_id,
+        "basel_stress_candidate_window_ids": list(stress_candidate_window_ids or []),
+        "basel_stress_window": stress_window_label,
+        "basel_stress_data_mode": stress_data_mode,
+        "basel_stress_methodology": stress_methodology,
+        "basel_stress_proxies_used": [dict(proxy) for proxy in (stress_proxies_used or [])],
+        "basel_stress_coverage_warnings": list(stress_coverage_warnings or []),
+        "basel_svar_governance_warnings": basel_svar_governance_warnings,
         "basel_var_60d_avg_99_10d": var_60d_average,
         "basel_stressed_var_60d_avg_99_10d": stressed_var_60d_average,
         "basel_backtesting_exceptions_250d": backtesting_exceptions,

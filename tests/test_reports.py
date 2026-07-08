@@ -53,6 +53,8 @@ def test_generate_basel_style_report_returns_capital_charge_section(monkeypatch)
     assert "## Section 3: VaR Model Outputs (99%, 10-day)" in body["report"]
     assert "## Section 4: Backtesting and Multiplier" in body["report"]
     assert "## Section 5: Capital Requirement Calculation" in body["report"]
+    assert "## Section 8: Stress Data Governance" in body["report"]
+    assert "Approved Stressed VaR window ID" in body["report"]
     assert "Total market risk capital requirement" in body["report"]
     assert body["citations"]
     get_settings.cache_clear()

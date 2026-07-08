@@ -12,3 +12,4 @@ data/cache/
 htmlcov/
 .dist/
 build/
+risk_advisor_copilot.egg-info/

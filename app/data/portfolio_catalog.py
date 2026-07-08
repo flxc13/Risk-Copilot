@@ -10,6 +10,9 @@ class PortfolioDefinition:
     strategy_style: str
     objective: str
     benchmark_ticker: str
+    basel_stress_window_id: str
+    basel_stress_window_ids: tuple[str, ...]
+    basel_stress_methodology: str
     risk_budget: str
     target_net_exposure: str
     target_gross_exposure: str
@@ -24,6 +27,9 @@ PORTFOLIO_CATALOG: dict[str, PortfolioDefinition] = {
         strategy_style="Equity long/short / technology, media, telecom",
         objective="Run a liquid TMT alpha book with concentrated compounder longs, index hedges, and controlled beta to growth equities.",
         benchmark_ticker="QQQ",
+        basel_stress_window_id="growth_2022",
+        basel_stress_window_ids=("growth_2022", "covid_2020_12m", "rates_2022"),
+        basel_stress_methodology="Approved equity-growth candidate stress set; current positions are revalued on each approved regime and the conservative calibration window is selected for sVaR.",
         risk_budget="1.25% daily VaR target, 8% max drawdown soft stop",
         target_net_exposure="55% to 70% net long",
         target_gross_exposure="130% to 170% gross using listed ETFs for hedges",
@@ -46,6 +52,9 @@ PORTFOLIO_CATALOG: dict[str, PortfolioDefinition] = {
         strategy_style="Cross-asset income / defensive carry",
         objective="Generate lower-volatility carry using bonds, credit, healthcare, gold, and explicit equity hedges for drawdown control.",
         benchmark_ticker="TLT",
+        basel_stress_window_id="rates_2022",
+        basel_stress_window_ids=("rates_2022", "covid_2020_12m"),
+        basel_stress_methodology="Approved rates and liquidity candidate stress set for duration, credit-spread, defensive equity, and real-asset carry exposures.",
         risk_budget="0.75% daily VaR target, 5% drawdown review level",
         target_net_exposure="20% to 40% net risk exposure",
         target_gross_exposure="90% to 125% gross across rates, credit, equity defensives, and hedges",
@@ -66,6 +75,9 @@ PORTFOLIO_CATALOG: dict[str, PortfolioDefinition] = {
         strategy_style="Discretionary macro / ETF implementation",
         objective="Express liquid macro views across equity beta, rates duration, energy, USD, gold, and drawdown hedges.",
         benchmark_ticker="SPY",
+        basel_stress_window_id="rates_2022",
+        basel_stress_window_ids=("rates_2022", "covid_2020_12m", "growth_2022"),
+        basel_stress_methodology="Approved macro candidate stress set covering rates repricing, liquidity shock, growth drawdown, dollar, commodity, and beta sleeves.",
         risk_budget="1.00% daily VaR target, 6% drawdown review level",
         target_net_exposure="Flexible, -10% to 65% directional risk",
         target_gross_exposure="100% to 150% gross across liquid ETF sleeves",
@@ -87,6 +99,9 @@ PORTFOLIO_CATALOG: dict[str, PortfolioDefinition] = {
         strategy_style="Event-driven / catalyst equity",
         objective="Hold liquid catalyst names around capital return, restructuring, M&A probability, and regulatory event paths with index hedges.",
         benchmark_ticker="SPY",
+        basel_stress_window_id="covid_2020_12m",
+        basel_stress_window_ids=("covid_2020_12m", "growth_2022", "rates_2022"),
+        basel_stress_methodology="Approved catalyst-equity candidate stress set; current holdings are stressed on observed equity-crisis and factor-rotation regimes.",
         risk_budget="1.10% daily VaR target, catalyst gap-risk reviewed weekly",
         target_net_exposure="45% to 60% net long",
         target_gross_exposure="115% to 145% gross using ETF hedge overlays",
@@ -107,6 +122,9 @@ PORTFOLIO_CATALOG: dict[str, PortfolioDefinition] = {
         strategy_style="Concentrated levered beta / crypto / volatility trading",
         objective="Demonstrate a stressed internal-model capital case with concentrated levered ETFs, crypto beta, and volatility exposure.",
         benchmark_ticker="QQQ",
+        basel_stress_window_id="growth_2022",
+        basel_stress_window_ids=("growth_2022", "covid_2020_12m", "rates_2022"),
+        basel_stress_methodology="Approved high-beta equity, crypto-proxy, and volatility candidate stress set; short-history and levered instruments use governed proxy transformations from observed market histories.",
         risk_budget="Breach-demo profile: VaR, drawdown, concentration, and capital intensity intentionally elevated",
         target_net_exposure="Aggressive directional risk, 90%+ net long equivalent",
         target_gross_exposure="250%+ gross economic beta through levered ETFs and high-volatility assets",

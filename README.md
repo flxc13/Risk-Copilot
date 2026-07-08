@@ -242,6 +242,7 @@ Defaults are applied if environment variables are absent or unparsable.
 - Local retrieval via Chroma for policy context in chat responses
 - Floating dashboard AI Copilot for grounded portfolio Q&A
 - Markdown report generation for morning notes, end-of-day wraps, and weekly reviews, with styled HTML export from the dashboard
+- Basel 2.5-style capital monitoring with portfolio-approved sVaR stress windows, yfinance stress histories, proxy mappings for short-history instruments, and governance warnings when stress calibration needs review
 - Deterministic sample-data report fallback when the AI provider is unavailable
 
 ## Implementation Checklist
@@ -255,6 +256,7 @@ Status reflects current code in this repository.
 - [x] Local policy-context retrieval in chat flow (Chroma)
 - [x] Basic automated tests for health endpoint and risk engine primitives
 - [x] API tests for chat fallback, report fallback, dashboard rendering, market data, and risk output
+- [x] Basel 2.5-style VaR/sVaR capital monitoring with governed stress-window assignment and proxy disclosure
 - [ ] CI workflow for automated test/lint on push/PR
 - [ ] Machine-readable progress tracker (for example `progress.json`)
 

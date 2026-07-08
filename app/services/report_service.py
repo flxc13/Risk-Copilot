@@ -71,6 +71,29 @@ def _warning_lines(report: Mapping[str, object]) -> list[str]:
     return ["- No active VaR or concentration warnings from the configured checks."]
 
 
+def _list_lines(values: object, empty_message: str) -> list[str]:
+    if isinstance(values, list) and values:
+        return [f"- {value}" for value in values]
+    return [f"- {empty_message}"]
+
+
+def _stress_proxy_lines(report: Mapping[str, object]) -> list[str]:
+    proxies = report.get("basel_stress_proxies_used", [])
+    if not isinstance(proxies, list) or not proxies:
+        return ["- No approved stress proxies were required for this portfolio/window."]
+
+    lines: list[str] = []
+    for proxy in proxies:
+        if not isinstance(proxy, Mapping):
+            continue
+        ticker = proxy.get("ticker", "UNKNOWN")
+        proxy_ticker = proxy.get("proxy_ticker", "UNKNOWN")
+        multiplier = _as_float(proxy, "return_multiplier")
+        reason = proxy.get("reason", "Approved stress proxy mapping.")
+        lines.append(f"- **{ticker}** -> **{proxy_ticker}** at {multiplier:.2f}x daily returns: {reason}")
+    return lines or ["- No approved stress proxies were required for this portfolio/window."]
+
+
 def _max_ticker_weight(report: Mapping[str, object]) -> float:
     exposures = report.get("exposures_by_ticker", {})
     if not isinstance(exposures, Mapping) or not exposures:
@@ -88,6 +111,15 @@ def _basel_simplified_report(report: Mapping[str, object], audience: str, genera
 
     basel_var_99_10d = _as_float(report, "basel_var_99_10d")
     basel_stressed_var_99_10d = _as_float(report, "basel_stressed_var_99_10d")
+    basel_stress_window_id = str(report.get("basel_stress_window_id", "sample_window"))
+    basel_stress_candidate_window_ids = report.get("basel_stress_candidate_window_ids", [])
+    if isinstance(basel_stress_candidate_window_ids, list) and basel_stress_candidate_window_ids:
+        basel_stress_candidate_windows = ", ".join(str(window_id) for window_id in basel_stress_candidate_window_ids)
+    else:
+        basel_stress_candidate_windows = basel_stress_window_id
+    basel_stress_window = str(report.get("basel_stress_window", "Recent sample tail-risk window"))
+    basel_stress_data_mode = str(report.get("basel_stress_data_mode", "sample_window"))
+    basel_stress_methodology = str(report.get("basel_stress_methodology", "Sample-window stress selection from available returns."))
     basel_var_60d_avg_99_10d = _as_float(report, "basel_var_60d_avg_99_10d")
     basel_stressed_var_60d_avg_99_10d = _as_float(report, "basel_stressed_var_60d_avg_99_10d")
     basel_backtesting_exceptions = int(_as_float(report, "basel_backtesting_exceptions_250d"))
@@ -154,6 +186,12 @@ def _basel_simplified_report(report: Mapping[str, object], audience: str, genera
             f"- Largest single-name weight: **{_pct(max_weight)}**",
             "",
             "## Section 3: VaR Model Outputs (99%, 10-day)",
+            "- Current VaR calibration window: **recent market-data window**",
+            f"- Approved candidate stress windows: **{basel_stress_candidate_windows}**",
+            f"- Approved Stressed VaR window ID: **{basel_stress_window_id}**",
+            f"- Stressed VaR calibration window: **{basel_stress_window}**",
+            f"- Stressed VaR data mode: **{basel_stress_data_mode}**",
+            f"- Stress methodology: **{basel_stress_methodology}**",
             f"- VaR(99%, 10d): **{_pct(basel_var_99_10d)}**",
             f"- Stressed VaR(99%, 10d): **{_pct(basel_stressed_var_99_10d)}**",
             f"- 60-day average VaR(99%, 10d): **{_pct(basel_var_60d_avg_99_10d)}**",
@@ -168,6 +206,8 @@ def _basel_simplified_report(report: Mapping[str, object], audience: str, genera
             "## Section 5: Capital Requirement Calculation",
             "- VaR capital leg formula: `max(VaR_t-1, m × Avg(VaR)_60)`",
             "- Stressed VaR capital leg formula: `max(sVaR_t-1, m × Avg(sVaR)_60)`",
+            f"- VaR binding input: max({_pct(basel_var_99_10d)}, {_pct(basel_capital_multiplier * basel_var_60d_avg_99_10d)})",
+            f"- sVaR binding input: max({_pct(basel_stressed_var_99_10d)}, {_pct(basel_capital_multiplier * basel_stressed_var_60d_avg_99_10d)})",
             f"- VaR capital leg: **{_money(basel_var_capital_charge)}**",
             f"- Stressed VaR capital leg: **{_money(basel_stressed_var_capital_charge)}**",
             f"- IRC charge (MVP placeholder): **{_money(basel_irc_charge)}**",
@@ -181,9 +221,23 @@ def _basel_simplified_report(report: Mapping[str, object], audience: str, genera
             "## Section 7: Control Checks",
             *_warning_lines(report),
             "",
-            "## Section 8: Methodology and Limitations",
+            "## Section 8: Stress Data Governance",
+            "- Stress calibration is assigned by desk/portfolio rather than selected ad hoc per request.",
+            "- Current positions are revalued on the approved historical stress window.",
+            "- Short-history instruments use approved proxy transformations where direct stress-window history is not available.",
+            "",
+            "### Approved Proxy Usage",
+            *_stress_proxy_lines(report),
+            "",
+            "### Coverage and Governance Review Items",
+            *_list_lines(
+                report.get("basel_svar_governance_warnings", []),
+                "No Basel sVaR governance review items raised by this run.",
+            ),
+            "",
+            "## Section 9: Methodology and Limitations",
             "- This report is Basel 2.5-style internal monitoring, not a submitted Pillar 1 template.",
-            "- sVaR window selection and backtesting are deterministic MVP approximations from available series data.",
+            "- sVaR window assignment approximates an internal-model governance workflow using approved portfolio-level windows.",
             "- IRC and CRM are represented as explicit placeholders until issuer-level migration/default and correlation-trading inputs are onboarded.",
             "- Governance workflow (independent validation, approval status, and policy attestations) is outside this API slice.",
         ]
@@ -197,6 +251,7 @@ def _basel_simplified_report(report: Mapping[str, object], audience: str, genera
             "risk_report",
             "basel_var_99_10d",
             "basel_stressed_var_99_10d",
+            "basel_stress_window_id",
             "basel_backtesting_exceptions_250d",
             "basel_total_capital_charge",
         ],
@@ -274,7 +329,7 @@ def generate_report(
             "Use these exact sections: Section 1: Reporting Scope and Desk Mapping, Section 2: Core Risk Inputs, "
             "Section 3: VaR Model Outputs (99%, 10-day), Section 4: Backtesting and Multiplier, "
             "Section 5: Capital Requirement Calculation, Section 6: Capital Intensity and RWA Proxy, "
-            "Section 7: Control Checks, Section 8: Methodology and Limitations. "
+            "Section 7: Control Checks, Section 8: Stress Data Governance, Section 9: Methodology and Limitations. "
             "Preserve a clear disclaimer that this is internal monitoring and not a regulatory filing."
         )
     else:

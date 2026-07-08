@@ -39,6 +39,14 @@ class RiskReport(BaseModel):
     expected_shortfall_95: float
     basel_var_99_10d: float = 0.0
     basel_stressed_var_99_10d: float = 0.0
+    basel_stress_window_id: str = "sample_window"
+    basel_stress_candidate_window_ids: list[str] = Field(default_factory=list)
+    basel_stress_window: str = "Recent sample tail-risk window"
+    basel_stress_data_mode: str = "sample_window"
+    basel_stress_methodology: str = "Sample-window stress selection from available returns."
+    basel_stress_proxies_used: list[dict[str, float | str]] = Field(default_factory=list)
+    basel_stress_coverage_warnings: list[str] = Field(default_factory=list)
+    basel_svar_governance_warnings: list[str] = Field(default_factory=list)
     basel_var_60d_avg_99_10d: float = 0.0
     basel_stressed_var_60d_avg_99_10d: float = 0.0
     basel_backtesting_exceptions_250d: int = 0

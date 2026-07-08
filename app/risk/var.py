@@ -75,11 +75,11 @@ def _stress_window_slice(returns: pd.Series, window: int = 125) -> pd.Series:
     if window <= 1 or len(returns) <= window:
         return returns
 
-    rolling_mean = returns.rolling(window=window).mean().dropna()
-    if rolling_mean.empty:
+    rolling_tail_risk = rolling_var(returns, window=window, confidence=0.99).dropna()
+    if rolling_tail_risk.empty:
         return returns
 
-    stress_end = rolling_mean.idxmin()
+    stress_end = rolling_tail_risk.idxmax()
     end_pos = returns.index.get_loc(stress_end)
     if isinstance(end_pos, slice):
         end_pos = end_pos.stop - 1
