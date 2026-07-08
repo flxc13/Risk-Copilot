@@ -101,6 +101,26 @@ PORTFOLIO_CATALOG: dict[str, PortfolioDefinition] = {
             {"ticker": "CASH", "quantity": 90000.0, "average_cost": 1.0, "asset_class": "Cash", "sector": "Liquidity", "region": "US", "position_type": "Cash buffer", "liquidity_bucket": "Same day", "risk_bucket": "Liquidity", "thesis": "Cash for event slippage, borrow, and redeployment."},
         ),
     ),
+    "high_octane_trading": PortfolioDefinition(
+        portfolio_id="high_octane_trading",
+        portfolio_name="High-Octane Levered Trading Book",
+        strategy_style="Concentrated levered beta / crypto / volatility trading",
+        objective="Demonstrate a stressed internal-model capital case with concentrated levered ETFs, crypto beta, and volatility exposure.",
+        benchmark_ticker="QQQ",
+        risk_budget="Breach-demo profile: VaR, drawdown, concentration, and capital intensity intentionally elevated",
+        target_net_exposure="Aggressive directional risk, 90%+ net long equivalent",
+        target_gross_exposure="250%+ gross economic beta through levered ETFs and high-volatility assets",
+        pm_desk="Demo Desk - High Risk Capital Case",
+        holdings=(
+            {"ticker": "TQQQ", "quantity": 1900, "average_cost": 62.0, "asset_class": "Levered ETF", "sector": "Nasdaq 100 3x", "region": "US", "position_type": "Levered long", "liquidity_bucket": "T+0", "risk_bucket": "Levered growth beta", "thesis": "High-convexity growth beta sleeve for capital charge demonstration."},
+            {"ticker": "SOXL", "quantity": 1700, "average_cost": 41.0, "asset_class": "Levered ETF", "sector": "Semiconductors 3x", "region": "US", "position_type": "Levered long", "liquidity_bucket": "T+0", "risk_bucket": "Levered semiconductor beta", "thesis": "Concentrated high-volatility semiconductor exposure."},
+            {"ticker": "COIN", "quantity": 430, "average_cost": 225.0, "asset_class": "Single Name Equity", "sector": "Crypto infrastructure", "region": "US", "position_type": "High beta long", "liquidity_bucket": "T+1", "risk_bucket": "Crypto equity beta", "thesis": "Crypto-linked equity exposure with large gap-risk potential."},
+            {"ticker": "BITO", "quantity": 2300, "average_cost": 28.0, "asset_class": "Crypto ETF", "sector": "Bitcoin futures", "region": "US", "position_type": "Crypto beta long", "liquidity_bucket": "T+0", "risk_bucket": "Digital asset beta", "thesis": "Liquid listed crypto futures beta for stress demonstration."},
+            {"ticker": "ARKK", "quantity": 1200, "average_cost": 48.0, "asset_class": "Thematic ETF", "sector": "Disruptive growth", "region": "US", "position_type": "Speculative growth long", "liquidity_bucket": "T+0", "risk_bucket": "Unprofitable growth beta", "thesis": "Long-duration growth factor exposure."},
+            {"ticker": "UVXY", "quantity": 900, "average_cost": 24.0, "asset_class": "Volatility ETF", "sector": "VIX futures", "region": "US", "position_type": "Volatility overlay", "liquidity_bucket": "T+0", "risk_bucket": "Volatility convexity", "thesis": "Volatility-linked instrument that increases portfolio path instability."},
+            {"ticker": "CASH", "quantity": 15000.0, "average_cost": 1.0, "asset_class": "Cash", "sector": "Liquidity", "region": "US", "position_type": "Minimal cash buffer", "liquidity_bucket": "Same day", "risk_bucket": "Liquidity", "thesis": "Small cash buffer to keep the stress case capital intensive."},
+        ),
+    ),
 }
 
 

@@ -37,6 +37,19 @@ class RiskReport(BaseModel):
     historical_var_95: float
     parametric_var_95: float
     expected_shortfall_95: float
+    basel_var_99_10d: float = 0.0
+    basel_stressed_var_99_10d: float = 0.0
+    basel_var_60d_avg_99_10d: float = 0.0
+    basel_stressed_var_60d_avg_99_10d: float = 0.0
+    basel_backtesting_exceptions_250d: int = 0
+    basel_backtesting_observations: int = 0
+    basel_backtesting_zone: str = "green"
+    basel_capital_multiplier: float = 0.0
+    basel_var_capital_charge: float = 0.0
+    basel_stressed_var_capital_charge: float = 0.0
+    basel_irc_charge: float = 0.0
+    basel_crm_charge: float = 0.0
+    basel_total_capital_charge: float = 0.0
     maximum_drawdown: float
     current_drawdown: float
     drawdown_series: list[dict[str, float | str]] = Field(default_factory=list)

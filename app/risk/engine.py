@@ -11,6 +11,11 @@ from app.risk.exposure import exposure_by_asset_class, exposure_by_ticker, top_h
 from app.risk.limits import assess_limits
 from app.risk.var import (
     annualized_volatility,
+    basel_backtesting_exceptions,
+    basel_historical_var,
+    basel_multiplier,
+    basel_stressed_historical_var,
+    basel_traffic_light_zone,
     expected_shortfall,
     historical_var,
     parametric_var,
@@ -151,6 +156,37 @@ def build_risk_report(
     historical = historical_var(portfolio_returns, confidence=confidence)
     parametric = parametric_var(portfolio_returns, confidence=confidence)
     shortfall = expected_shortfall(portfolio_returns, confidence=confidence)
+    basel_var_99_10d = basel_historical_var(portfolio_returns, confidence=0.99, horizon_days=10)
+    basel_stressed_var_99_10d = basel_stressed_historical_var(
+        portfolio_returns,
+        confidence=0.99,
+        horizon_days=10,
+        stress_window=125,
+    )
+    var_60d_average = basel_historical_var(portfolio_returns.tail(60), confidence=0.99, horizon_days=10)
+    stressed_var_60d_average = basel_stressed_historical_var(
+        portfolio_returns.tail(60),
+        confidence=0.99,
+        horizon_days=10,
+        stress_window=60,
+    )
+    backtesting_exceptions, backtesting_observations = basel_backtesting_exceptions(
+        portfolio_returns,
+        confidence=0.99,
+        backtesting_window=250,
+    )
+    backtesting_zone = basel_traffic_light_zone(backtesting_exceptions)
+    basel_capital_multiplier = basel_multiplier(backtesting_exceptions)
+    basel_var_capital_charge = latest_value * max(basel_var_99_10d, basel_capital_multiplier * var_60d_average)
+    basel_stressed_var_capital_charge = latest_value * max(
+        basel_stressed_var_99_10d,
+        basel_capital_multiplier * stressed_var_60d_average,
+    )
+    basel_irc_charge = 0.0
+    basel_crm_charge = 0.0
+    basel_total_capital_charge = (
+        basel_var_capital_charge + basel_stressed_var_capital_charge + basel_irc_charge + basel_crm_charge
+    )
     drawdown = maximum_drawdown(portfolio_values)
     sharpe = sharpe_ratio(portfolio_returns)
     exposure_ticker = exposure_by_ticker(holdings, latest_prices)
@@ -219,6 +255,19 @@ def build_risk_report(
         "historical_var_95": historical,
         "parametric_var_95": parametric,
         "expected_shortfall_95": shortfall,
+        "basel_var_99_10d": basel_var_99_10d,
+        "basel_stressed_var_99_10d": basel_stressed_var_99_10d,
+        "basel_var_60d_avg_99_10d": var_60d_average,
+        "basel_stressed_var_60d_avg_99_10d": stressed_var_60d_average,
+        "basel_backtesting_exceptions_250d": backtesting_exceptions,
+        "basel_backtesting_observations": backtesting_observations,
+        "basel_backtesting_zone": backtesting_zone,
+        "basel_capital_multiplier": basel_capital_multiplier,
+        "basel_var_capital_charge": basel_var_capital_charge,
+        "basel_stressed_var_capital_charge": basel_stressed_var_capital_charge,
+        "basel_irc_charge": basel_irc_charge,
+        "basel_crm_charge": basel_crm_charge,
+        "basel_total_capital_charge": basel_total_capital_charge,
         "maximum_drawdown": drawdown,
         "current_drawdown": current_drawdown(portfolio_values),
         "drawdown_series": drawdown_series,

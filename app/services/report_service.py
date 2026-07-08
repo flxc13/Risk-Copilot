@@ -86,99 +86,120 @@ def _basel_simplified_report(report: Mapping[str, object], audience: str, genera
     max_drawdown = _as_float(report, "maximum_drawdown")
     max_weight = _max_ticker_weight(report)
 
-    stress_var = max(var95 * 1.25, es95)
+    basel_var_99_10d = _as_float(report, "basel_var_99_10d")
+    basel_stressed_var_99_10d = _as_float(report, "basel_stressed_var_99_10d")
+    basel_var_60d_avg_99_10d = _as_float(report, "basel_var_60d_avg_99_10d")
+    basel_stressed_var_60d_avg_99_10d = _as_float(report, "basel_stressed_var_60d_avg_99_10d")
+    basel_backtesting_exceptions = int(_as_float(report, "basel_backtesting_exceptions_250d"))
+    basel_backtesting_observations = int(_as_float(report, "basel_backtesting_observations"))
+    basel_backtesting_zone = str(report.get("basel_backtesting_zone", "green"))
+    basel_capital_multiplier = _as_float(report, "basel_capital_multiplier")
 
-    sbm_delta_charge = total_value * stress_var * 2.20
-    sbm_vega_charge = total_value * max(volatility - 0.12, 0.0) * 0.35
-    sbm_curvature_charge = total_value * max(max_drawdown - 0.10, 0.0) * 0.45
-    sbm_total = sbm_delta_charge + sbm_vega_charge + sbm_curvature_charge
+    if basel_var_99_10d == 0.0:
+        basel_var_99_10d = var95 * (10**0.5)
+    if basel_stressed_var_99_10d == 0.0:
+        basel_stressed_var_99_10d = max(var95 * 1.25, es95) * (10**0.5)
+    if basel_var_60d_avg_99_10d == 0.0:
+        basel_var_60d_avg_99_10d = basel_var_99_10d
+    if basel_stressed_var_60d_avg_99_10d == 0.0:
+        basel_stressed_var_60d_avg_99_10d = basel_stressed_var_99_10d
+    if basel_capital_multiplier == 0.0:
+        basel_capital_multiplier = 3.0
 
-    drc_jtd_proxy = total_value * max(max_weight - 0.20, 0.0)
-    drc_charge = drc_jtd_proxy * 0.08
+    basel_var_capital_charge = _as_float(report, "basel_var_capital_charge")
+    basel_stressed_var_capital_charge = _as_float(report, "basel_stressed_var_capital_charge")
+    basel_irc_charge = _as_float(report, "basel_irc_charge")
+    basel_crm_charge = _as_float(report, "basel_crm_charge")
+    basel_total_capital_charge = _as_float(report, "basel_total_capital_charge")
 
-    rrao_notional_proxy = total_value * max(volatility - 0.20, 0.0)
-    rrao_charge = rrao_notional_proxy * 0.01
+    if basel_var_capital_charge == 0.0:
+        basel_var_capital_charge = total_value * max(basel_var_99_10d, basel_capital_multiplier * basel_var_60d_avg_99_10d)
+    if basel_stressed_var_capital_charge == 0.0:
+        basel_stressed_var_capital_charge = total_value * max(
+            basel_stressed_var_99_10d,
+            basel_capital_multiplier * basel_stressed_var_60d_avg_99_10d,
+        )
+    if basel_total_capital_charge == 0.0:
+        basel_total_capital_charge = (
+            basel_var_capital_charge + basel_stressed_var_capital_charge + basel_irc_charge + basel_crm_charge
+        )
 
-    sa_total = sbm_total + drc_charge + rrao_charge
-
-    imcc_like_charge = total_value * es95 * 1.50
-    pre_buffer_binding_charge = max(sa_total, imcc_like_charge)
-    operational_buffer = pre_buffer_binding_charge * 0.10
-    total_capital_charge = pre_buffer_binding_charge + operational_buffer
-    rwa_proxy = total_capital_charge / 0.08 if total_capital_charge > 0 else 0.0
+    rwa_proxy = basel_total_capital_charge / 0.08 if basel_total_capital_charge > 0 else 0.0
 
     portfolio_name = report.get("portfolio_name", "Selected portfolio")
     desk_name = report.get("strategy_style", "Unknown strategy")
 
     markdown = "\n".join(
         [
-            f"# Basel-Style Risk Capital Charge Breakdown: {portfolio_name}",
+            f"# Basel 2.5 IMA Capital Monitoring Statement: {portfolio_name}",
             "",
             f"Generated: {generated_at}",
             f"Audience: {audience}",
-            "Framework: Basel-style, calculation-first internal estimate",
+            "Framework: Basel 2.5-style internal monitoring format (VaR + Stressed VaR stack)",
             "",
-            "> **Important:** This is an internal, simplified capital-style estimate for management use. "
-            "It is **not** an FRTB-SA, FRTB-IMA, or regulatory capital submission.",
+            "> **Important:** This is an internal monitoring statement. "
+            "It is **not** a legal/regulatory filing and does not represent supervisory approval status.",
             "",
-            "## Regulatory Mapping (Simplified)",
-            "- Trading desk proxy: portfolio strategy bucket",
-            "- Market risk module: sensitivities-based method (SBM) proxy",
-            "- Default risk module: default risk charge (DRC) proxy",
-            "- Residual risk module: residual risk add-on (RRAO) proxy",
-            "- Internal models comparator: ES-based IMCC-style proxy",
-            "",
-            "## Input Risk Measures",
-            f"- Desk proxy: **{desk_name}**",
+            "## Section 1: Reporting Scope and Desk Mapping",
+            f"- Reporting desk: **{desk_name}**",
             f"- Portfolio market value: **{_money(total_value)}**",
-            f"- Historical VaR 95: **{_pct(var95)}**",
-            f"- Expected shortfall 95: **{_pct(es95)}**",
+            "- Regulatory perimeter in this MVP: market risk capital stack under Basel 2.5-style VaR/sVaR monitoring",
+            "- Modules excluded from this MVP capital stack: IRC and CRM advanced treatment (carried as explicit placeholders)",
+            "",
+            "## Section 2: Core Risk Inputs",
+            f"- Historical VaR 95 (legacy dashboard metric): **{_pct(var95)}**",
+            f"- Expected shortfall 95 (legacy dashboard metric): **{_pct(es95)}**",
             f"- Annualized volatility: **{_pct(volatility)}**",
             f"- Maximum drawdown: **{_pct(max_drawdown)}**",
             f"- Largest single-name weight: **{_pct(max_weight)}**",
             "",
-            "## FRTB-SA Proxy: Sensitivities-Based Method (SBM)",
-            f"- Stress VaR proxy = `max(VaR95 × 1.25, ES95)` = **{_pct(stress_var)}**",
-            f"- Delta charge proxy = `MV × Stress VaR × 2.20` = **{_money(sbm_delta_charge)}**",
-            f"- Vega charge proxy = `MV × max(Vol - 12%, 0) × 0.35` = **{_money(sbm_vega_charge)}**",
-            f"- Curvature charge proxy = `MV × max(Max Drawdown - 10%, 0) × 0.45` = **{_money(sbm_curvature_charge)}**",
-            f"- **SBM total = {_money(sbm_total)}**",
+            "## Section 3: VaR Model Outputs (99%, 10-day)",
+            f"- VaR(99%, 10d): **{_pct(basel_var_99_10d)}**",
+            f"- Stressed VaR(99%, 10d): **{_pct(basel_stressed_var_99_10d)}**",
+            f"- 60-day average VaR(99%, 10d): **{_pct(basel_var_60d_avg_99_10d)}**",
+            f"- 60-day average Stressed VaR(99%, 10d): **{_pct(basel_stressed_var_60d_avg_99_10d)}**",
             "",
-            "## FRTB-SA Proxy: Default Risk Charge (DRC)",
-            f"- JTD proxy = `MV × max(Largest Weight - 20%, 0)` = **{_money(drc_jtd_proxy)}**",
-            f"- DRC charge proxy = `JTD Proxy × 8%` = **{_money(drc_charge)}**",
+            "## Section 4: Backtesting and Multiplier",
+            f"- Backtesting window observations: **{basel_backtesting_observations}**",
+            f"- Exceptions (actual PnL breaches): **{basel_backtesting_exceptions}**",
+            f"- Traffic-light zone: **{basel_backtesting_zone.upper()}**",
+            f"- Capital multiplier (m): **{basel_capital_multiplier:.2f}**",
             "",
-            "## FRTB-SA Proxy: Residual Risk Add-On (RRAO)",
-            f"- RRAO notional proxy = `MV × max(Vol - 20%, 0)` = **{_money(rrao_notional_proxy)}**",
-            f"- RRAO charge proxy = `RRAO Notional Proxy × 1%` = **{_money(rrao_charge)}**",
+            "## Section 5: Capital Requirement Calculation",
+            "- VaR capital leg formula: `max(VaR_t-1, m × Avg(VaR)_60)`",
+            "- Stressed VaR capital leg formula: `max(sVaR_t-1, m × Avg(sVaR)_60)`",
+            f"- VaR capital leg: **{_money(basel_var_capital_charge)}**",
+            f"- Stressed VaR capital leg: **{_money(basel_stressed_var_capital_charge)}**",
+            f"- IRC charge (MVP placeholder): **{_money(basel_irc_charge)}**",
+            f"- CRM charge (MVP placeholder): **{_money(basel_crm_charge)}**",
+            f"- **Total market risk capital requirement: {_money(basel_total_capital_charge)}**",
             "",
-            "## IMA Comparator Proxy",
-            f"- IMCC-style charge = `MV × ES95 × 1.50` = **{_money(imcc_like_charge)}**",
-            "",
-            "## Capital Stack and Binding Charge",
-            f"- SA total proxy = `SBM + DRC + RRAO` = **{_money(sa_total)}**",
-            f"- IMA comparator proxy = **{_money(imcc_like_charge)}**",
-            f"- Pre-buffer binding charge = `max(SA, IMA)` = **{_money(pre_buffer_binding_charge)}**",
-            f"- Operational buffer = `10% × Binding Charge` = **{_money(operational_buffer)}**",
-            f"- **Total indicative capital charge = {_money(total_capital_charge)}**",
-            f"- Capital / market value = **{_pct(total_capital_charge / total_value if total_value > 0 else 0.0)}**",
+            "## Section 6: Capital Intensity and RWA Proxy",
+            f"- Capital / market value: **{_pct(basel_total_capital_charge / total_value if total_value > 0 else 0.0)}**",
             f"- RWA proxy at 8% capital ratio = **{_money(rwa_proxy)}**",
             "",
-            "## Control Checks",
+            "## Section 7: Control Checks",
             *_warning_lines(report),
             "",
-            "## Scope and Model Limitations",
-            "- Calculation intentionally mirrors FRTB sectioning but remains a non-regulatory approximation.",
-            "- No risk-factor bucketing/correlation matrices, modellability tests, NMRF charge, PLA/backtesting, or liquidity horizon scaling.",
-            "- No issuer-level LGD/PD term structure, tenor decomposition, securitization treatment, or jurisdictional adjustments.",
+            "## Section 8: Methodology and Limitations",
+            "- This report is Basel 2.5-style internal monitoring, not a submitted Pillar 1 template.",
+            "- sVaR window selection and backtesting are deterministic MVP approximations from available series data.",
+            "- IRC and CRM are represented as explicit placeholders until issuer-level migration/default and correlation-trading inputs are onboarded.",
+            "- Governance workflow (independent validation, approval status, and policy attestations) is outside this API slice.",
         ]
     )
     return GeneratedReport(
         title=REPORT_TITLES["basel_simplified_capital"],
         report=markdown,
         mode="offline_sample_report",
-        model="local-basel-simplified-template",
-        citations=["risk_report", "exposures_by_ticker", "warnings", "risk_metrics"],
+        model="local-basel25-monitoring-template",
+        citations=[
+            "risk_report",
+            "basel_var_99_10d",
+            "basel_stressed_var_99_10d",
+            "basel_backtesting_exceptions_250d",
+            "basel_total_capital_charge",
+        ],
     )
 
 
@@ -249,11 +270,12 @@ def generate_report(
 
     if report_type == "basel_simplified_capital":
         output_instructions = (
-            "Return markdown as a calculation breakdown, not an executive memo. "
-            "Use these exact sections: Input Risk Measures, FRTB-SA Proxy: Sensitivities-Based Method (SBM), "
-            "FRTB-SA Proxy: Default Risk Charge (DRC), FRTB-SA Proxy: Residual Risk Add-On (RRAO), "
-            "IMA Comparator Proxy, Capital Stack and Binding Charge, Control Checks, Scope and Model Limitations. "
-            "Preserve a clear disclaimer that this is non-regulatory and not an FRTB submission."
+            "Return markdown in a Basel 2.5-style reporting format, not a narrative memo. "
+            "Use these exact sections: Section 1: Reporting Scope and Desk Mapping, Section 2: Core Risk Inputs, "
+            "Section 3: VaR Model Outputs (99%, 10-day), Section 4: Backtesting and Multiplier, "
+            "Section 5: Capital Requirement Calculation, Section 6: Capital Intensity and RWA Proxy, "
+            "Section 7: Control Checks, Section 8: Methodology and Limitations. "
+            "Preserve a clear disclaimer that this is internal monitoring and not a regulatory filing."
         )
     else:
         output_instructions = (

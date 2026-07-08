@@ -30,6 +30,12 @@ PROFILE_BY_TICKER: dict[str, dict[str, float]] = {
     "UUP": {"start": 28.0, "drift": 0.00005, "vol": 0.004},
     "PSQ": {"start": 11.0, "drift": -0.00035, "vol": 0.014},
     "SH": {"start": 13.0, "drift": -0.00025, "vol": 0.01},
+    "TQQQ": {"start": 62.0, "drift": 0.0009, "vol": 0.052},
+    "SOXL": {"start": 41.0, "drift": 0.00085, "vol": 0.064},
+    "ARKK": {"start": 48.0, "drift": 0.00035, "vol": 0.038},
+    "COIN": {"start": 225.0, "drift": 0.0007, "vol": 0.058},
+    "BITO": {"start": 28.0, "drift": 0.0006, "vol": 0.05},
+    "UVXY": {"start": 24.0, "drift": -0.0012, "vol": 0.075},
     "CASH": {"start": 1.0, "drift": 0.0, "vol": 0.0},
 }
 

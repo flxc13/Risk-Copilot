@@ -48,10 +48,11 @@ def test_generate_basel_style_report_returns_capital_charge_section(monkeypatch)
     body = response.json()
     assert body["mode"] == "offline_sample_report"
     assert body["title"] == "Basel-Style Risk Capital Charge Report"
-    assert "not** an FRTB-SA, FRTB-IMA, or regulatory capital submission" in body["report"]
-    assert "## FRTB-SA Proxy: Sensitivities-Based Method (SBM)" in body["report"]
-    assert "## FRTB-SA Proxy: Default Risk Charge (DRC)" in body["report"]
-    assert "## FRTB-SA Proxy: Residual Risk Add-On (RRAO)" in body["report"]
-    assert "## Capital Stack and Binding Charge" in body["report"]
+    assert "Basel 2.5 IMA Capital Monitoring Statement" in body["report"]
+    assert "not** a legal/regulatory filing" in body["report"]
+    assert "## Section 3: VaR Model Outputs (99%, 10-day)" in body["report"]
+    assert "## Section 4: Backtesting and Multiplier" in body["report"]
+    assert "## Section 5: Capital Requirement Calculation" in body["report"]
+    assert "Total market risk capital requirement" in body["report"]
     assert body["citations"]
     get_settings.cache_clear()
