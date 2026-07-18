@@ -15,3 +15,12 @@ def test_dashboard_page_renders() -> None:
     assert "AI Risk Copilot" in response.text
     assert "Report generation" in response.text
     assert "generate-report-button" in response.text
+    assert "basel-report-overlay" in response.text
+    assert "Basel Capital Monitoring Dashboard" in response.text
+    assert "buildBaselDashboardMarkup" in response.text
+    assert "Print / PDF" in response.text
+    assert '.join("\\n")' in response.text
+    assert "Historical stress testing" in response.text
+    assert "run-stress-button" in response.text
+    assert "stress-scenario-select" in response.text
+    assert "renderStressResult" in response.text

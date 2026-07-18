@@ -17,7 +17,7 @@ class ReportGenerateRequest(BaseModel):
 
 
 @router.post("/reports/generate")
-def generate_risk_report_markdown(request: ReportGenerateRequest) -> dict[str, str | list[str]]:
+def generate_risk_report_markdown(request: ReportGenerateRequest) -> dict[str, object]:
     risk_report = generate_risk_report(
         use_demo_data=request.use_demo_data,
         portfolio_id=request.portfolio_id,
@@ -34,4 +34,5 @@ def generate_risk_report_markdown(request: ReportGenerateRequest) -> dict[str, s
         "mode": generated.mode,
         "model": generated.model,
         "citations": generated.citations,
+        "dashboard": generated.dashboard,
     }

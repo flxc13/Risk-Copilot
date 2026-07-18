@@ -943,6 +943,244 @@ def _dashboard_html() -> str:
       box-shadow: 0 0 18px rgba(45, 212, 191, 0.8);
       vertical-align: 1px;
     }
+    .basel-report-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      overflow-y: auto;
+      background: #eef2f5;
+      color: #17202a;
+    }
+    .basel-report-overlay.visible { display: block; }
+    .basel-report-toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 58px;
+      padding: 10px 28px;
+      color: #f8fafc;
+      background: #17212b;
+      border-bottom: 3px solid #18a999;
+    }
+    .basel-report-toolbar strong { font-size: 14px; letter-spacing: 0; }
+    .basel-toolbar-actions { display: flex; gap: 8px; }
+    .basel-toolbar-actions button {
+      min-height: 36px;
+      padding: 8px 12px;
+      border: 1px solid rgba(255,255,255,0.24);
+      border-radius: 6px;
+      color: #f8fafc;
+      background: rgba(255,255,255,0.08);
+      cursor: pointer;
+    }
+    .basel-report-canvas {
+      width: min(1420px, calc(100% - 40px));
+      margin: 24px auto 48px;
+    }
+    .basel-report-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 24px;
+      align-items: end;
+      padding: 24px 28px;
+      color: #f8fafc;
+      background: #243746;
+      border-left: 6px solid #18a999;
+    }
+    .basel-report-kicker {
+      margin-bottom: 8px;
+      color: #82ddd2;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    .basel-report-head h2 { margin: 0; font-size: 28px; letter-spacing: 0; }
+    .basel-report-head p { margin: 8px 0 0; color: #c8d2da; font-size: 13px; }
+    .basel-scope-badge {
+      max-width: 300px;
+      padding: 10px 12px;
+      border: 1px solid rgba(255,255,255,0.22);
+      border-radius: 6px;
+      color: #f8fafc;
+      background: rgba(255,255,255,0.06);
+      font-size: 11px;
+      line-height: 1.45;
+      text-align: right;
+    }
+    .basel-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      border: 1px solid #ccd5dc;
+      border-top: 0;
+      background: #fff;
+    }
+    .basel-kpi {
+      min-width: 0;
+      padding: 20px 22px;
+      border-right: 1px solid #dce3e8;
+    }
+    .basel-kpi:last-child { border-right: 0; }
+    .basel-kpi span { display: block; color: #65727d; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+    .basel-kpi strong { display: block; margin-top: 7px; color: #17202a; font-size: 25px; letter-spacing: 0; }
+    .basel-dashboard-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 18px;
+      margin-top: 18px;
+    }
+    .basel-dashboard-section {
+      min-width: 0;
+      padding: 22px;
+      border: 1px solid #ccd5dc;
+      border-radius: 6px;
+      background: #fff;
+    }
+    .basel-dashboard-section.wide { grid-column: 1 / -1; }
+    .basel-section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #243746;
+    }
+    .basel-section-title h3 { margin: 0; color: #243746; font-size: 15px; letter-spacing: 0; }
+    .basel-section-title span { color: #65727d; font-size: 11px; }
+    .basel-stack-row {
+      display: grid;
+      grid-template-columns: 170px minmax(120px, 1fr) 110px;
+      gap: 12px;
+      align-items: center;
+      margin: 13px 0;
+      font-size: 12px;
+    }
+    .basel-stack-track { height: 12px; overflow: hidden; background: #e5eaee; }
+    .basel-stack-fill { height: 100%; min-width: 2px; background: #18a999; }
+    .basel-stack-fill.placeholder { background: #b8c1c8; }
+    .basel-stack-value { font-weight: 800; text-align: right; }
+    .basel-status-tag {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 2px 5px;
+      border-radius: 4px;
+      color: #6b4f00;
+      background: #fff0bf;
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+    .basel-metric-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .basel-metric-table th, .basel-metric-table td { padding: 10px 8px; border-bottom: 1px solid #e2e7eb; text-align: left; }
+    .basel-metric-table th { color: #65727d; font-size: 10px; text-transform: uppercase; }
+    .basel-metric-table td:nth-child(2) { font-weight: 800; text-align: right; }
+    .basel-metric-table td:last-child { color: #65727d; text-align: right; }
+    .basel-classification {
+      padding: 16px;
+      border-left: 5px solid #d99a1b;
+      background: #fff8e6;
+    }
+    .basel-classification.green { border-left-color: #26855b; background: #edf8f2; }
+    .basel-classification.yellow { border-left-color: #d99a1b; }
+    .basel-classification.red { border-left-color: #c94b4b; background: #fff0f0; }
+    .basel-classification strong { display: block; margin-bottom: 5px; color: #17202a; }
+    .basel-classification span { color: #596671; font-size: 12px; line-height: 1.5; }
+    .basel-evidence-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .basel-evidence {
+      padding: 14px;
+      border: 1px solid #dce3e8;
+      background: #f7f9fa;
+    }
+    .basel-evidence strong { display: block; color: #243746; font-size: 12px; }
+    .basel-evidence code { display: block; margin: 7px 0; color: #52616d; font-size: 11px; white-space: normal; }
+    .basel-evidence b { color: #17202a; font-size: 18px; }
+    .basel-detail-list { margin: 0; padding-left: 18px; color: #4b5964; font-size: 12px; line-height: 1.6; }
+    .basel-detail-list li { margin: 6px 0; color: #4b5964; }
+    .basel-governance-meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+    .basel-governance-meta div { padding: 11px; background: #f1f4f6; }
+    .basel-governance-meta span { display: block; color: #65727d; font-size: 9px; font-weight: 800; text-transform: uppercase; }
+    .basel-governance-meta strong { display: block; margin-top: 5px; color: #243746; font-size: 12px; }
+    .basel-report-footer { margin-top: 16px; color: #687680; font-size: 10px; line-height: 1.5; }
+    .stress-workbench {
+      margin-top: 18px;
+      padding: 24px;
+      border-top: 3px solid var(--accent-3);
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.88), rgba(3, 7, 18, 0.72));
+    }
+    .stress-controls {
+      display: grid;
+      grid-template-columns: minmax(240px, 1fr) auto auto;
+      gap: 10px;
+      align-items: end;
+      margin-top: 16px;
+    }
+    .stress-controls select {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 9px 11px;
+      color: var(--text);
+      background: rgba(3, 7, 18, 0.72);
+    }
+    .stress-status { color: var(--muted); font-size: 12px; }
+    .stress-results { display: none; margin-top: 20px; }
+    .stress-results.visible { display: block; }
+    .stress-result-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: start;
+      padding: 16px 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+    .stress-result-head h4 { margin: 0 0 6px; font-size: 18px; }
+    .stress-result-head p { margin: 0; color: var(--muted); font-size: 12px; }
+    .stress-run-badge {
+      padding: 7px 9px;
+      border: 1px solid rgba(245, 158, 11, 0.36);
+      border-radius: 4px;
+      color: #fbbf24;
+      background: rgba(245, 158, 11, 0.08);
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+    .stress-kpis {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      border-bottom: 1px solid var(--line);
+    }
+    .stress-kpi { padding: 18px; border-right: 1px solid var(--line); }
+    .stress-kpi:last-child { border-right: 0; }
+    .stress-kpi span { display: block; color: var(--muted); font-size: 10px; font-weight: 800; text-transform: uppercase; }
+    .stress-kpi strong { display: block; margin-top: 6px; font-size: 22px; }
+    .stress-kpi.loss strong { color: var(--bad); }
+    .stress-analysis-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 16px; margin-top: 16px; }
+    .stress-subsection { min-width: 0; padding: 16px; border: 1px solid var(--line); background: rgba(3, 7, 18, 0.38); }
+    .stress-subsection h4 { margin: 0 0 12px; font-size: 13px; text-transform: uppercase; }
+    .stress-driver-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .stress-driver-table th, .stress-driver-table td { padding: 9px 7px; border-bottom: 1px solid var(--line); text-align: left; }
+    .stress-driver-table th { color: var(--muted); font-size: 9px; text-transform: uppercase; }
+    .stress-driver-table td:nth-child(n+3) { text-align: right; }
+    .stress-negative { color: var(--bad); }
+    .stress-positive { color: var(--good); }
+    .stress-governance-list { margin: 0; padding-left: 17px; color: var(--muted); font-size: 12px; line-height: 1.55; }
+    .stress-governance-list li { margin: 6px 0; }
+    @media print {
+      body > .app-shell, body > .basel-report-overlay:not(.visible) { display: none !important; }
+      .basel-report-overlay.visible { position: static; display: block; overflow: visible; }
+      .basel-report-toolbar { display: none; }
+      .basel-report-canvas { width: 100%; margin: 0; }
+      .basel-dashboard-section { break-inside: avoid; }
+    }
     @media (max-width: 1260px) {
       .app-shell { grid-template-columns: 1fr; }
       .sidebar {
@@ -961,6 +1199,12 @@ def _dashboard_html() -> str:
         align-items: start;
       }
       .hero-orbit { display: none; }
+      .basel-kpi-grid { grid-template-columns: 1fr 1fr; }
+      .basel-kpi:nth-child(2) { border-right: 0; }
+      .basel-kpi:nth-child(-n+2) { border-bottom: 1px solid #dce3e8; }
+      .basel-dashboard-grid { grid-template-columns: 1fr; }
+      .basel-dashboard-section.wide { grid-column: auto; }
+      .stress-analysis-grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 640px) {
       .floating-copilot {
@@ -982,6 +1226,286 @@ def _dashboard_html() -> str:
       .copilot-meta {
         grid-template-columns: 1fr;
       }
+      .basel-report-toolbar { padding: 10px 14px; }
+      .basel-report-canvas { width: calc(100% - 20px); margin-top: 10px; }
+      .basel-report-head { grid-template-columns: 1fr; padding: 20px; }
+      .basel-scope-badge { max-width: none; text-align: left; }
+      .basel-kpi-grid { grid-template-columns: 1fr; }
+      .basel-kpi { border-right: 0; border-bottom: 1px solid #dce3e8; }
+      .basel-stack-row { grid-template-columns: 1fr 80px; }
+      .basel-stack-track { grid-column: 1 / -1; grid-row: 2; }
+      .basel-evidence-grid, .basel-governance-meta { grid-template-columns: 1fr; }
+      .stress-controls, .stress-kpis { grid-template-columns: 1fr; }
+      .stress-kpi { border-right: 0; border-bottom: 1px solid var(--line); }
+      .stress-result-head { display: grid; }
+    }
+
+    /* Industrial operations-console visual system */
+    :root {
+      --bg: #090a0b;
+      --panel: #121416;
+      --panel-2: #191d20;
+      --panel-3: #202529;
+      --line: rgba(151, 161, 168, 0.22);
+      --line-hot: rgba(217, 154, 50, 0.68);
+      --text: #f0f1ee;
+      --muted: #9aa2a6;
+      --accent: #d99a32;
+      --accent-2: #e4a33a;
+      --accent-3: #bd7720;
+      --good: #78a783;
+      --bad: #d85a5a;
+      --violet: #a0a7ab;
+      --steel: #343b40;
+      --steel-bright: #4a545b;
+      --radius-xs: 2px;
+      --radius-sm: 4px;
+      --radius-md: 6px;
+      --radius-lg: 8px;
+      --shadow: 0 12px 28px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.035);
+      --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.04), inset 0 -1px 0 rgba(0, 0, 0, 0.72);
+      --font-ui: Bahnschrift, "Segoe UI Variable", "Segoe UI", sans-serif;
+      --font-mono: "Cascadia Mono", "SFMono-Regular", Consolas, monospace;
+    }
+    body {
+      font-family: var(--font-ui);
+      background: linear-gradient(180deg, rgba(255,255,255,0.015), transparent 180px), var(--bg);
+    }
+    body::before {
+      background:
+        repeating-linear-gradient(135deg, rgba(255,255,255,0.018) 0 1px, transparent 1px 5px),
+        repeating-linear-gradient(45deg, rgba(0,0,0,0.18) 0 1px, transparent 1px 5px);
+      background-size: 8px 8px;
+      mask-image: none;
+      opacity: 0.52;
+      animation: none;
+    }
+    body::after { display: none; }
+    .app-shell { grid-template-columns: 286px minmax(0, 1fr); }
+    .sidebar {
+      padding: 20px 16px;
+      border-right: 1px solid var(--steel);
+      background: linear-gradient(90deg, rgba(255,255,255,0.018), transparent 42%), linear-gradient(180deg, #171a1c, #0d0f10);
+      backdrop-filter: none;
+      box-shadow: 8px 0 24px rgba(0,0,0,0.26), inset -1px 0 0 rgba(255,255,255,0.025);
+    }
+    .brand-mark {
+      border: 1px solid #50585d;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(145deg, #444b4f, #171a1c 52%, #070808);
+      box-shadow: var(--shadow-inset), 0 6px 14px rgba(0,0,0,0.32);
+    }
+    .brand-mark::after {
+      border: 1px solid var(--accent);
+      border-radius: 1px;
+      background: #111314;
+      box-shadow: 0 0 0 3px rgba(217,154,50,0.08);
+    }
+    .brand-copy strong { letter-spacing: 0; text-transform: uppercase; }
+    .side-section {
+      padding: 14px;
+      margin-bottom: 12px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(180deg, #171a1c, #111315);
+      box-shadow: var(--shadow-inset);
+    }
+    .side-title, .sidebar-kpi .label { font-family: var(--font-mono); }
+    .nav-list { gap: 4px; }
+    .nav-item {
+      padding: 10px;
+      border-radius: var(--radius-sm);
+      background: transparent;
+      transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+    }
+    .nav-item:hover, .nav-item.active {
+      border-color: rgba(217,154,50,0.36);
+      background: linear-gradient(90deg, rgba(217,154,50,0.13), rgba(217,154,50,0.025));
+      box-shadow: none;
+      transform: translateX(1px);
+    }
+    .status-badge { border-radius: var(--radius-xs); font-family: var(--font-mono); }
+    .content { width: 100%; max-width: 1680px; margin: 0 auto; padding: 22px 24px 42px; }
+    .hero {
+      min-height: 176px;
+      margin-bottom: 12px;
+      padding: 24px 26px;
+      border: 1px solid var(--steel);
+      border-left: 4px solid var(--accent);
+      border-radius: var(--radius-lg);
+      background: linear-gradient(105deg, rgba(255,255,255,0.025), transparent 58%), repeating-linear-gradient(135deg, rgba(255,255,255,0.014) 0 1px, transparent 1px 6px), linear-gradient(180deg, #191d20, #101214);
+      box-shadow: var(--shadow);
+    }
+    .hero::before {
+      content: "SYS // RISK-OPS-01";
+      width: auto;
+      height: auto;
+      right: 24px;
+      top: 22px;
+      border: 0;
+      border-radius: 0;
+      background: none;
+      filter: none;
+      color: #687075;
+      font: 11px var(--font-mono);
+      letter-spacing: 0.12em;
+      animation: none;
+    }
+    .hero::after { content: "MARKET RISK / STRESS / CAPITAL / AI TOOLING"; color: #687075; }
+    .eyebrow { font: 11px var(--font-mono); }
+    h1 {
+      max-width: 920px;
+      font-size: 42px;
+      line-height: 1.05;
+      letter-spacing: 0;
+      text-transform: uppercase;
+      text-shadow: none;
+    }
+    .subtitle { max-width: 760px; line-height: 1.5; }
+    .hero-telemetry { margin-top: 16px; }
+    .telemetry-chip {
+      padding: 7px 9px;
+      border-radius: var(--radius-xs);
+      background: #0d0f10;
+      box-shadow: var(--shadow-inset);
+      color: var(--text);
+      font: 11px var(--font-mono);
+    }
+    .telemetry-chip span { color: var(--accent); }
+    .hero-orbit { display: none; }
+    .command-strip {
+      gap: 1px;
+      margin-bottom: 12px;
+      border: 1px solid var(--steel);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      background: var(--steel);
+    }
+    .command-tile {
+      padding: 11px 12px;
+      border: 0;
+      border-radius: 0;
+      background: linear-gradient(180deg, #171a1c, #111315);
+      box-shadow: var(--shadow-inset);
+    }
+    .command-tile strong { margin-bottom: 3px; color: var(--muted); font-family: var(--font-mono); }
+    .command-tile span { color: var(--text); font: 12px/1.35 var(--font-mono); }
+    .controls, .card, .panel {
+      border-color: var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.018), transparent 32%), linear-gradient(180deg, var(--panel-2), var(--panel));
+      box-shadow: var(--shadow);
+      backdrop-filter: none;
+    }
+    .controls { top: 10px; margin-bottom: 12px; border-radius: var(--radius-md); }
+    .field label { font-family: var(--font-mono); }
+    select, button, textarea, .report-panel input {
+      border-radius: var(--radius-sm);
+      background: #0d0f10;
+      font-family: var(--font-ui);
+      transition: border-color 160ms ease, background 160ms ease, transform 160ms ease, color 160ms ease;
+    }
+    button {
+      position: relative;
+      overflow: hidden;
+      border-color: #efa943;
+      background: linear-gradient(180deg, #e0a23e, #b9781f);
+      color: #17120a;
+      box-shadow: var(--shadow-inset), 0 4px 10px rgba(0,0,0,0.26);
+    }
+    button:hover:not(:disabled) { border-color: #ffc66a; background: linear-gradient(180deg, #ebb04d, #c68224); transform: translateY(-1px); }
+    button:active:not(:disabled) { transform: translateY(1px); box-shadow: inset 0 2px 5px rgba(0,0,0,0.42); }
+    button:disabled { cursor: not-allowed; color: #72787b; border-color: #30363a; background: #181b1d; box-shadow: var(--shadow-inset); opacity: 0.72; }
+    button:disabled::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(217,154,50,0.12), transparent);
+      transform: translateX(-100%);
+      animation: processSweep 1.4s linear infinite;
+    }
+    select:focus-visible, button:focus-visible, textarea:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .summary-grid { gap: 10px; margin-bottom: 10px; }
+    .summary-grid:empty::before {
+      content: "INITIALIZING RISK TELEMETRY...";
+      grid-column: 1 / -1;
+      padding: 16px;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      background: var(--panel);
+      font: 11px var(--font-mono);
+      letter-spacing: 0.1em;
+    }
+    .card { min-height: 104px; border-radius: var(--radius-md); animation: panelEnter 260ms ease both; }
+    .card::before { inset: 0; height: 2px; background: linear-gradient(90deg, var(--accent), transparent 54%); opacity: 0.52; }
+    .metric-label { font: 10px var(--font-mono); }
+    .metric-value { font: 800 29px var(--font-mono); }
+    .panel { border-radius: var(--radius-lg); }
+    .panel::before { background: linear-gradient(90deg, rgba(217,154,50,0.07), transparent 16%, transparent 84%, rgba(255,255,255,0.018)); }
+    .section-heading h3, .table th { font-family: var(--font-mono); }
+    .section-heading h3::before { border-radius: 1px; background: var(--accent); box-shadow: none; }
+    .table { font-variant-numeric: tabular-nums; }
+    .table-shell { width: 100%; overflow-x: auto; scrollbar-color: var(--steel-bright) #090a0b; }
+    .status-item { border-radius: var(--radius-sm); background: #111416; }
+    .status-pill { border-radius: var(--radius-xs); font-family: var(--font-mono); }
+    .warning { border-radius: var(--radius-sm); }
+    .stress-workbench { border-top-color: var(--accent); background: linear-gradient(180deg, #1b1f21, #111315); }
+    .stress-status { min-height: 30px; margin-top: 10px; padding: 8px 10px; border-left: 2px solid var(--steel-bright); background: #0d0f10; font-family: var(--font-mono); }
+    .stress-status[data-state="processing"] { border-left-color: var(--accent); color: var(--text); }
+    .stress-status[data-state="error"] { border-left-color: var(--bad); color: #f0a1a1; }
+    .stress-status[data-state="success"] { border-left-color: var(--good); color: #a9c9b0; }
+    .stress-subsection { border-radius: var(--radius-sm); background: #0f1112; box-shadow: var(--shadow-inset); }
+    .system-alert {
+      position: relative;
+      z-index: 50;
+      margin: 12px;
+      padding: 12px 14px;
+      border: 1px solid rgba(216,90,90,0.55);
+      border-left: 4px solid var(--bad);
+      border-radius: var(--radius-sm);
+      color: #f2b0b0;
+      background: #241416;
+      font: 12px var(--font-mono);
+    }
+    .copilot-launcher {
+      border: 1px solid var(--accent);
+      border-radius: var(--radius-lg);
+      background: linear-gradient(145deg, #343a3e, #141719 58%, #090a0b);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 4px rgba(217,154,50,0.07);
+    }
+    .copilot-launcher:hover { border-color: #ffc263; box-shadow: 0 12px 28px rgba(0,0,0,0.44), 0 0 0 5px rgba(217,154,50,0.10); }
+    .copilot-pulse { box-shadow: 0 0 0 3px rgba(120,167,131,0.16); animation: statusPulse 2.4s ease-in-out infinite; }
+    .copilot-window {
+      border-color: var(--steel-bright);
+      border-radius: var(--radius-lg);
+      background: repeating-linear-gradient(135deg, rgba(255,255,255,0.012) 0 1px, transparent 1px 6px), linear-gradient(180deg, #1b1f22, #0d0f10);
+      box-shadow: 0 18px 46px rgba(0,0,0,0.58), var(--shadow-inset);
+      backdrop-filter: none;
+      animation: panelEnter 180ms ease both;
+    }
+    .copilot-icon-button, .copilot-status, .chat-log, .message, .prompt-toggle, .prompt-chip, .report-panel, .report-output { border-radius: var(--radius-sm); }
+    .copilot-status { color: var(--good); background: rgba(120,167,131,0.08); font: 10px var(--font-mono); }
+    .chat-log { background: #0c0e0f; }
+    .message.user { background: rgba(217,154,50,0.12); border-color: rgba(217,154,50,0.32); }
+    .message.ai { background: linear-gradient(180deg, #1a1e20, #121416); border-color: var(--line); box-shadow: none; }
+    @keyframes panelEnter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes statusPulse { 0%, 100% { opacity: 0.62; } 50% { opacity: 1; } }
+    @keyframes processSweep { to { transform: translateX(100%); } }
+    @media (max-width: 1260px) { .app-shell { grid-template-columns: 1fr; } }
+    @media (max-width: 1120px) {
+      .controls, .summary-grid, .command-strip { grid-template-columns: 1fr 1fr; }
+      .layout, .layout.alt { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .content { padding: 12px; }
+      .hero { min-height: 220px; padding: 20px 16px; }
+      .hero::before { display: none; }
+      .hero::after { left: 16px; right: auto; bottom: 14px; letter-spacing: 0.1em; }
+      h1 { font-size: 30px; }
+      .controls, .summary-grid, .command-strip { grid-template-columns: 1fr; }
+      .copilot-window { border-radius: var(--radius-lg); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; }
     }
   </style>
 </head>
@@ -1001,6 +1525,7 @@ def _dashboard_html() -> str:
         <div class="nav-list">
           <a class="nav-item active" href="#overview"><span>Overview</span><small>Core metrics</small></a>
           <a class="nav-item" href="#risk"><span>Risk</span><small>VaR, CVaR, drawdown</small></a>
+          <a class="nav-item" href="#stress-testing"><span>Stress testing</span><small>Historical replay</small></a>
           <a class="nav-item" href="#exposure"><span>Exposure</span><small>Weights and holdings</small></a>
           <a class="nav-item" href="#copilot"><span>AI Copilot</span><small>Ask, explain, investigate</small></a>
         </div>
@@ -1022,8 +1547,8 @@ def _dashboard_html() -> str:
       <div class="hero" id="overview">
         <div>
           <p class="eyebrow">Risk Advisor Copilot</p>
-          <h1>Autonomous Risk Command Center</h1>
-          <div class="subtitle">A production-style dashboard for small hedge funds: strategy-based sample portfolios, live or demo market data, explicit risk calculations, benchmark comparison, and a live AI copilot for risk explanation.</div>
+          <h1>Risk Operations Console</h1>
+          <div class="subtitle">Portfolio telemetry, governed historical stress, capital evidence, and tool-enabled AI analysis in one operational surface.</div>
           <div class="hero-telemetry">
             <div class="telemetry-chip"><span>Signal</span>VaR / CVaR online</div>
             <div class="telemetry-chip"><span>Feed</span>yfinance ingestion + cache</div>
@@ -1037,10 +1562,10 @@ def _dashboard_html() -> str:
       </div>
 
       <div class="command-strip">
-        <div class="command-tile"><strong>Portfolio telemetry</strong><span>Strategy selector, objective, market data mode, and refresh controls are wired to the live API.</span></div>
-        <div class="command-tile"><strong>Risk engine</strong><span>NAV, returns, drawdown, VaR, CVaR, beta, tracking error, and correlations are computed server-side.</span></div>
-        <div class="command-tile"><strong>Data layer</strong><span>Historical prices support demo mode and yfinance ingestion with deterministic local cache.</span></div>
-        <div class="command-tile"><strong>AI copilot</strong><span>Floating markdown chat explains current VaR, drawdown, benchmark drift, concentration, and next review steps.</span></div>
+        <div class="command-tile"><strong>Analytics core</strong><span>ONLINE / DETERMINISTIC</span></div>
+        <div class="command-tile"><strong>Market data bus</strong><span>YFINANCE / LOCAL CACHE</span></div>
+        <div class="command-tile"><strong>Stress engine</strong><span>GOVERNED / RECONCILED</span></div>
+        <div class="command-tile"><strong>AI tool bus</strong><span>GPT-5.4 / ARMED</span></div>
       </div>
 
       <div class="controls">
@@ -1067,6 +1592,36 @@ def _dashboard_html() -> str:
 
       <div class="summary-grid" id="primary-metrics"></div>
       <div class="summary-grid" id="secondary-metrics"></div>
+
+      <section class="panel stress-workbench content-section" id="stress-testing">
+        <div class="section-heading">
+          <h3>Historical stress testing</h3>
+          <span>Approved scenario replay on current positions</span>
+        </div>
+        <p class="helper">Run the same governed tool available to the AI Copilot. Historical returns are replayed on current marked positions with position-level P&amp;L reconciliation.</p>
+        <div class="stress-controls">
+          <div class="field">
+            <label for="stress-scenario-select">Approved scenario</label>
+            <select id="stress-scenario-select"></select>
+          </div>
+          <button id="run-stress-button" type="button">Run stress test</button>
+          <button id="download-stress-button" type="button" disabled>Download report</button>
+        </div>
+        <div class="stress-status" id="stress-status" role="status" aria-live="polite">Select an approved scenario or ask the Copilot to run one.</div>
+        <div class="stress-results" id="stress-results">
+          <div class="stress-result-head">
+            <div><h4 id="stress-result-title"></h4><p id="stress-result-subtitle"></p></div>
+            <div class="stress-run-badge">Deterministic replay</div>
+          </div>
+          <div class="stress-kpis" id="stress-kpis"></div>
+          <div class="stress-analysis-grid">
+            <div class="stress-subsection"><h4>Portfolio P&amp;L path</h4><div id="stress-path-chart" class="chart"></div></div>
+            <div class="stress-subsection"><h4>Largest loss contributors</h4><div class="table-shell"><table class="stress-driver-table"><thead><tr><th>Ticker</th><th>Risk bucket</th><th>P&amp;L</th><th>Return</th></tr></thead><tbody id="stress-driver-rows"></tbody></table></div></div>
+            <div class="stress-subsection"><h4>Scenario governance</h4><ul class="stress-governance-list" id="stress-governance"></ul></div>
+            <div class="stress-subsection"><h4>Interpretation boundary</h4><ul class="stress-governance-list" id="stress-limitations"></ul></div>
+          </div>
+        </div>
+      </section>
 
       <section class="layout content-section" id="risk">
         <div class="panel">
@@ -1121,7 +1676,7 @@ def _dashboard_html() -> str:
             <span>Position detail</span>
           </div>
           <p class="helper">Market value and weight table for the selected strategy basket.</p>
-          <table class="table">
+          <div class="table-shell"><table class="table">
             <thead>
               <tr>
                 <th>Ticker</th>
@@ -1131,7 +1686,7 @@ def _dashboard_html() -> str:
               </tr>
             </thead>
             <tbody id="holdings-table"></tbody>
-          </table>
+          </table></div>
           <div class="warnings" id="warning-list"></div>
         </div>
       </section>
@@ -1147,7 +1702,7 @@ def _dashboard_html() -> str:
               </div>
             </div>
             <div class="copilot-actions">
-              <div class="copilot-status" id="copilot-status">Offline-ready</div>
+              <div class="copilot-status" id="copilot-status" role="status" aria-live="polite">Offline-ready</div>
               <button class="copilot-icon-button copilot-minimize-button" id="close-copilot-button" type="button" aria-label="Minimize copilot">_</button>
             </div>
           </div>
@@ -1167,6 +1722,7 @@ def _dashboard_html() -> str:
               <button class="prompt-chip" type="button">Explain the current VaR and expected shortfall in plain English.</button>
               <button class="prompt-chip" type="button">Which holdings or asset classes are driving the most concentration risk?</button>
               <button class="prompt-chip" type="button">Compare this portfolio to its benchmark and highlight active risk.</button>
+              <button class="prompt-chip" type="button">Run the approved historical stress test and give me the report.</button>
               <button class="prompt-chip" type="button">What should a PM inspect before increasing risk in this book?</button>
               <button class="prompt-chip" type="button">Write a short morning risk note for this portfolio.</button>
             </div>
@@ -1174,7 +1730,7 @@ def _dashboard_html() -> str:
           <div class="report-panel">
             <div class="prompt-panel-header">
               <div class="prompt-panel-title">Report generation</div>
-              <div class="small" id="report-status">Ready</div>
+              <div class="small" id="report-status" role="status" aria-live="polite">Ready</div>
             </div>
             <div class="report-controls">
               <select id="report-type" aria-label="Report type">
@@ -1207,6 +1763,17 @@ def _dashboard_html() -> str:
     </main>
   </div>
 
+  <section class="basel-report-overlay" id="basel-report-overlay" aria-label="Basel capital dashboard" aria-hidden="true">
+    <div class="basel-report-toolbar">
+      <strong>Basel Capital Monitoring Dashboard</strong>
+      <div class="basel-toolbar-actions">
+        <button id="print-basel-report-button" type="button">Print / PDF</button>
+        <button id="close-basel-report-button" type="button" aria-label="Close Basel dashboard">Close</button>
+      </div>
+    </div>
+    <div class="basel-report-canvas" id="basel-report-canvas"></div>
+  </section>
+
   <script>
     const state = {
       portfolios: [],
@@ -1214,6 +1781,8 @@ def _dashboard_html() -> str:
       useDemoData: true,
       generatedReport: "",
       generatedReportTitle: "risk-report",
+      generatedDashboard: null,
+      stressResult: null,
     };
 
     const portfolioSelect = document.getElementById("portfolio-select");
@@ -1243,6 +1812,15 @@ def _dashboard_html() -> str:
     const generateReportButton = document.getElementById("generate-report-button");
     const copyReportButton = document.getElementById("copy-report-button");
     const downloadReportButton = document.getElementById("download-report-button");
+    const baselReportOverlay = document.getElementById("basel-report-overlay");
+    const baselReportCanvas = document.getElementById("basel-report-canvas");
+    const closeBaselReportButton = document.getElementById("close-basel-report-button");
+    const printBaselReportButton = document.getElementById("print-basel-report-button");
+    const stressScenarioSelect = document.getElementById("stress-scenario-select");
+    const runStressButton = document.getElementById("run-stress-button");
+    const downloadStressButton = document.getElementById("download-stress-button");
+    const stressStatus = document.getElementById("stress-status");
+    const stressResults = document.getElementById("stress-results");
 
     const money = new Intl.NumberFormat(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 0 });
     const percentage = new Intl.NumberFormat(undefined, { style: "percent", minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -1369,8 +1947,269 @@ def _dashboard_html() -> str:
 
     function escapeHtml(value) {
       const wrapper = document.createElement("div");
-      wrapper.textContent = value || "";
+      wrapper.textContent = value == null ? "" : String(value);
       return wrapper.innerHTML;
+    }
+
+    function formatBaselValue(item) {
+      const value = Number(item.value || 0);
+      if (item.format === "money") return money.format(value);
+      if (item.format === "percent") return percentage.format(value);
+      if (item.format === "multiple") return `${decimal.format(value)}x`;
+      if (item.format === "integer") return Math.round(value).toLocaleString();
+      return decimal.format(value);
+    }
+
+    function baselList(items, emptyText) {
+      const values = Array.isArray(items) ? items.filter(Boolean) : [];
+      if (values.length === 0) return `<li>${escapeHtml(emptyText)}</li>`;
+      return values.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+    }
+
+    function buildBaselDashboardMarkup(dashboard) {
+      const headlineMetrics = dashboard.headline_metrics || [];
+      const capitalStack = dashboard.capital_stack || [];
+      const modelMetrics = dashboard.model_metrics || [];
+      const evidence = dashboard.calculation_evidence || [];
+      const stress = dashboard.stress_governance || {};
+      const status = dashboard.status || {};
+      const maxCapital = Math.max(...capitalStack.map((item) => Number(item.value || 0)), 1);
+      const candidates = Array.isArray(stress.candidate_windows) && stress.candidate_windows.length > 0
+        ? stress.candidate_windows.join(", ")
+        : stress.selected_window_id || "Not supplied";
+      const proxyCount = Array.isArray(stress.proxies) ? stress.proxies.length : 0;
+
+      return `
+        <header class="basel-report-head">
+          <div>
+            <div class="basel-report-kicker">${escapeHtml(status.label || "Internal monitoring")}</div>
+            <h2>${escapeHtml(dashboard.portfolio_name)} · Basel Capital View</h2>
+            <p>${escapeHtml(dashboard.desk)} · ${escapeHtml(dashboard.generated_at)} · Audience: ${escapeHtml(dashboard.audience)}</p>
+          </div>
+          <div class="basel-scope-badge">${escapeHtml(dashboard.framework)}</div>
+        </header>
+
+        <div class="basel-kpi-grid">
+          ${headlineMetrics.map((item) => `
+            <div class="basel-kpi">
+              <span>${escapeHtml(item.label)}</span>
+              <strong>${escapeHtml(formatBaselValue(item))}</strong>
+            </div>
+          `).join("")}
+        </div>
+
+        <div class="basel-dashboard-grid">
+          <section class="basel-dashboard-section">
+            <div class="basel-section-title"><h3>Capital stack</h3><span>Illustrative charge by component</span></div>
+            ${capitalStack.map((item) => {
+              const isPlaceholder = item.status !== "calculated";
+              const width = isPlaceholder ? 0 : Math.max((Number(item.value || 0) / maxCapital) * 100, 1);
+              return `
+                <div class="basel-stack-row">
+                  <div>${escapeHtml(item.label)}${isPlaceholder ? '<span class="basel-status-tag">Not implemented</span>' : ""}</div>
+                  <div class="basel-stack-track"><div class="basel-stack-fill ${isPlaceholder ? "placeholder" : ""}" style="width:${width}%"></div></div>
+                  <div class="basel-stack-value">${escapeHtml(money.format(Number(item.value || 0)))}</div>
+                </div>
+              `;
+            }).join("")}
+          </section>
+
+          <section class="basel-dashboard-section">
+            <div class="basel-section-title"><h3>Backtesting control</h3><span>Forecast vs realized P&amp;L</span></div>
+            <div class="basel-classification ${escapeHtml(status.traffic_light || "insufficient")}">
+              <strong>${escapeHtml(status.traffic_light_label || "NOT CLASSIFIED")}</strong>
+              <span>${escapeHtml(status.traffic_light_reason || "Classification evidence unavailable.")}</span>
+            </div>
+            <table class="basel-metric-table">
+              <thead><tr><th>Metric</th><th>Result</th><th>Basis</th></tr></thead>
+              <tbody>
+                ${modelMetrics.slice(-2).map((item) => `<tr><td>${escapeHtml(item.label)}</td><td>${escapeHtml(formatBaselValue(item))}</td><td>${escapeHtml(item.basis)}</td></tr>`).join("")}
+              </tbody>
+            </table>
+          </section>
+
+          <section class="basel-dashboard-section">
+            <div class="basel-section-title"><h3>Model evidence</h3><span>99% confidence · 10-day horizon</span></div>
+            <table class="basel-metric-table">
+              <thead><tr><th>Measure</th><th>Result</th><th>Evidence</th></tr></thead>
+              <tbody>
+                ${modelMetrics.slice(0, 4).map((item) => `<tr><td>${escapeHtml(item.label)}</td><td>${escapeHtml(formatBaselValue(item))}</td><td>${escapeHtml(item.basis)}</td></tr>`).join("")}
+              </tbody>
+            </table>
+          </section>
+
+          <section class="basel-dashboard-section">
+            <div class="basel-section-title"><h3>Calculation trace</h3><span>Binding capital logic</span></div>
+            <div class="basel-evidence-grid">
+              ${evidence.map((item) => `
+                <div class="basel-evidence">
+                  <strong>${escapeHtml(item.label)}</strong>
+                  <code>${escapeHtml(item.formula)}</code>
+                  <b>${escapeHtml(money.format(Number(item.value || 0)))}</b>
+                </div>
+              `).join("")}
+            </div>
+          </section>
+
+          <section class="basel-dashboard-section wide">
+            <div class="basel-section-title"><h3>Stressed VaR governance</h3><span>Window selection and coverage</span></div>
+            <div class="basel-governance-meta">
+              <div><span>Selected window</span><strong>${escapeHtml(stress.selected_window_id)}</strong></div>
+              <div><span>Data mode</span><strong>${escapeHtml(stress.data_mode)}</strong></div>
+              <div><span>Approved proxies used</span><strong>${proxyCount}</strong></div>
+            </div>
+            <p class="small"><strong>${escapeHtml(stress.selected_window)}</strong></p>
+            <p class="small">Candidate set: ${escapeHtml(candidates)}</p>
+            <p class="small">${escapeHtml(stress.methodology)}</p>
+            <ul class="basel-detail-list">${baselList(stress.warnings, "No stress-window governance warnings raised.")}</ul>
+          </section>
+
+          <section class="basel-dashboard-section">
+            <div class="basel-section-title"><h3>Methodology basis</h3><span>Implemented approach</span></div>
+            <ul class="basel-detail-list">${baselList(dashboard.methodology, "Methodology disclosure unavailable.")}</ul>
+          </section>
+
+          <section class="basel-dashboard-section">
+            <div class="basel-section-title"><h3>Scope and limitations</h3><span>Do not infer beyond these controls</span></div>
+            <ul class="basel-detail-list">${baselList(dashboard.limitations, "No limitations supplied.")}</ul>
+          </section>
+        </div>
+        <div class="basel-report-footer">Internal monitoring demo. Not a regulatory filing, supervisory approval, or claim of IMA model approval. RWA equivalent is the illustrative capital charge multiplied by 12.5.</div>
+      `;
+    }
+
+    function openBaselDashboard(dashboard) {
+      baselReportCanvas.innerHTML = buildBaselDashboardMarkup(dashboard);
+      baselReportOverlay.classList.add("visible");
+      baselReportOverlay.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+      baselReportOverlay.scrollTop = 0;
+    }
+
+    function closeBaselDashboard() {
+      baselReportOverlay.classList.remove("visible");
+      baselReportOverlay.setAttribute("aria-hidden", "true");
+      document.body.style.removeProperty("overflow");
+    }
+
+    function buildBaselStandaloneHtml(title, dashboard) {
+      const styles = Array.from(document.querySelectorAll("style")).map((style) => style.textContent).join("\\n");
+      return `<!doctype html><html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><title>${escapeHtml(title)}</title><style>${styles}</style></head><body><section class="basel-report-overlay visible"><div class="basel-report-canvas">${buildBaselDashboardMarkup(dashboard)}</div></section></body></html>`;
+    }
+
+    function renderStressResult(result, shouldScroll = false) {
+      state.stressResult = result;
+      stressResults.classList.add("visible");
+      downloadStressButton.disabled = false;
+      document.getElementById("stress-result-title").textContent = result.scenario_label;
+      document.getElementById("stress-result-subtitle").textContent = `${result.portfolio_name} · ${result.scenario_start_date} to ${result.scenario_end_date} · worst point ${result.worst_date}`;
+      document.getElementById("stress-kpis").innerHTML = [
+        ["Current value", money.format(result.current_value), ""],
+        ["Worst loss", money.format(result.worst_loss), "loss"],
+        ["Worst return", percentage.format(result.worst_return), "loss"],
+        ["Stressed value", money.format(result.worst_stressed_value), ""],
+      ].map(([label, value, tone]) => `<div class="stress-kpi ${tone}"><span>${label}</span><strong>${value}</strong></div>`).join("");
+
+      const impacts = (result.position_impacts || []).slice(0, 7);
+      document.getElementById("stress-driver-rows").innerHTML = impacts.map((row) => `
+        <tr>
+          <td>${escapeHtml(row.ticker)}</td>
+          <td>${escapeHtml(row.risk_bucket)}</td>
+          <td class="${row.pnl < 0 ? "stress-negative" : "stress-positive"}">${money.format(row.pnl)}</td>
+          <td class="${row.return < 0 ? "stress-negative" : "stress-positive"}">${percentage.format(row.return)}</td>
+        </tr>
+      `).join("");
+
+      const proxyText = (result.proxies_used || []).length > 0
+        ? `${result.proxies_used.length} approved proxy mapping(s) applied and disclosed in the API result.`
+        : "No approved proxy mapping was required.";
+      const coverage = result.coverage_warnings || [];
+      document.getElementById("stress-governance").innerHTML = [
+        `Scenario ID: ${result.scenario_id}`,
+        `Data mode: ${result.data_mode}`,
+        `Attribution reconciled: ${result.attribution_reconciled}`,
+        proxyText,
+        ...coverage,
+      ].map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+      document.getElementById("stress-limitations").innerHTML = (result.limitations || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+
+      const path = result.path || [];
+      Plotly.newPlot("stress-path-chart", [{
+        x: path.map((point) => point.date),
+        y: path.map((point) => point.pnl),
+        type: "scatter",
+        mode: "lines",
+        fill: "tozeroy",
+        line: { color: "#d85a5a", width: 2 },
+        fillcolor: "rgba(216,90,90,0.14)",
+        hovertemplate: "%{x}<br>P&L %{y:$,.0f}<extra></extra>",
+      }], {
+        margin: { l: 62, r: 18, t: 12, b: 38 },
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(0,0,0,0)",
+        xaxis: { gridcolor: "rgba(151,161,168,0.08)" },
+        yaxis: { tickprefix: "$", gridcolor: "rgba(216,90,90,0.10)", zerolinecolor: "rgba(151,161,168,0.30)" },
+        font: { color: "#e7e9e6", family: "Cascadia Mono, Consolas, monospace" },
+      }, { displayModeBar: false, responsive: true });
+      stressStatus.textContent = `Completed ${result.scenario_id}; worst loss ${money.format(result.worst_loss)} on ${result.worst_date}.`;
+      stressStatus.dataset.state = "success";
+      if (shouldScroll) document.getElementById("stress-testing").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    async function loadStressScenarios() {
+      const response = await fetch(`/api/stress/scenarios?portfolio_id=${encodeURIComponent(portfolioSelect.value)}`);
+      if (!response.ok) throw new Error(`Scenario catalog request failed (${response.status})`);
+      const payload = await response.json();
+      const approved = (payload.scenarios || []).filter((scenario) => scenario.approved_for_portfolio);
+      stressScenarioSelect.innerHTML = approved.map((scenario) => `<option value="${escapeHtml(scenario.scenario_id)}">${escapeHtml(scenario.label)}</option>`).join("");
+      stressResults.classList.remove("visible");
+      state.stressResult = null;
+      downloadStressButton.disabled = true;
+      stressStatus.textContent = approved.length > 0 ? `${approved.length} approved scenario(s) available for this portfolio.` : "No approved scenarios available.";
+      stressStatus.dataset.state = "idle";
+    }
+
+    async function runSelectedStressTest() {
+      if (!stressScenarioSelect.value) return;
+      runStressButton.disabled = true;
+      stressStatus.dataset.state = "processing";
+      stressStatus.textContent = "Running governed historical replay...";
+      try {
+        const response = await fetch("/api/stress/runs", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            portfolio_id: portfolioSelect.value,
+            scenario_id: stressScenarioSelect.value,
+            use_demo_data: dataMode.value === "true",
+          }),
+        });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || `Stress run failed (${response.status})`);
+        renderStressResult(payload, true);
+      } catch (error) {
+        stressStatus.dataset.state = "error";
+        stressStatus.textContent = `Stress run failed: ${error}`;
+      } finally {
+        runStressButton.disabled = false;
+      }
+    }
+
+    function downloadStressReport() {
+      if (!state.stressResult) return;
+      const styles = Array.from(document.querySelectorAll("style")).map((style) => style.textContent).join("\\n");
+      const title = `${state.stressResult.portfolio_name} - ${state.stressResult.scenario_label}`;
+      const content = document.getElementById("stress-testing").outerHTML;
+      const html = `<!doctype html><html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><title>${escapeHtml(title)}</title><style>${styles}body{padding:24px}.stress-workbench{max-width:1200px;margin:0 auto}.stress-controls{display:none}</style></head><body>${content}</body></html>`;
+      const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${state.stressResult.portfolio_id}-${state.stressResult.scenario_id}-stress-report.html`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
     }
 
     function reportMarkdownToHtml(markdown) {
@@ -1512,7 +2351,12 @@ def _dashboard_html() -> str:
         const payload = await response.json();
         state.generatedReport = payload.report || "No report returned.";
         state.generatedReportTitle = payload.title || "risk-report";
+        state.generatedDashboard = payload.dashboard || null;
         renderReportPreview(state.generatedReport);
+        if (state.generatedDashboard) {
+          closeCopilot();
+          openBaselDashboard(state.generatedDashboard);
+        }
         reportStatus.textContent = payload.mode === "poe_live_report" ? "Live AI report" : "Fallback report";
         copyReportButton.disabled = false;
         downloadReportButton.disabled = false;
@@ -1539,7 +2383,9 @@ def _dashboard_html() -> str:
         return;
       }
       const slug = state.generatedReportTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "risk-report";
-      const html = buildStyledReportHtml(state.generatedReportTitle, state.generatedReport);
+      const html = state.generatedDashboard
+        ? buildBaselStandaloneHtml(state.generatedReportTitle, state.generatedDashboard)
+        : buildStyledReportHtml(state.generatedReportTitle, state.generatedReport);
       const blob = new Blob([html], { type: "text/html;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -1576,7 +2422,12 @@ def _dashboard_html() -> str:
         });
         const payload = await response.json();
         setMarkdownMessage(pending, payload.answer || "No answer returned.");
-        copilotStatus.textContent = payload.mode === "poe_live" ? "Live AI" : "Offline analyst";
+        if (payload.stress_result) {
+          renderStressResult(payload.stress_result, true);
+          copilotStatus.textContent = "Stress tool complete";
+        } else {
+          copilotStatus.textContent = payload.mode === "poe_live" ? "Live AI" : "Offline analyst";
+        }
         copilotModel.textContent = payload.model || "unknown";
         copilotMode.textContent = payload.mode || "unknown";
       } catch (error) {
@@ -1660,7 +2511,7 @@ def _dashboard_html() -> str:
         y: sorted.map(([ticker]) => ticker),
         marker: {
           color: sorted.map(([, weight]) => weight),
-          colorscale: [[0, "#1d4ed8"], [0.5, "#38bdf8"], [1, "#2dd4bf"]],
+          colorscale: [[0, "#3b4247"], [0.55, "#8a6731"], [1, "#d99a32"]],
           line: { color: "rgba(238,247,255,0.20)", width: 1 },
         },
         hovertemplate: "%{y}: %{x:.2%}<extra></extra>",
@@ -1688,8 +2539,8 @@ def _dashboard_html() -> str:
       const drawdownY = drawdown.map((point) => Number(point.drawdown));
 
       Plotly.newPlot("value-chart", [
-        { x: portfolio.x, y: portfolio.y, type: "scatter", mode: "lines", name: report.portfolio_name, line: { color: "#67e8f9", width: 3 } },
-        { x: benchmark.x, y: benchmark.y, type: "scatter", mode: "lines", name: "Benchmark", line: { color: "#2dd4bf", width: 2, dash: "dot" } },
+        { x: portfolio.x, y: portfolio.y, type: "scatter", mode: "lines", name: report.portfolio_name, line: { color: "#d99a32", width: 3 } },
+        { x: benchmark.x, y: benchmark.y, type: "scatter", mode: "lines", name: "Benchmark", line: { color: "#aab2b6", width: 2, dash: "dot" } },
       ], {
         margin: { l: 50, r: 20, t: 20, b: 40 },
         paper_bgcolor: "rgba(0,0,0,0)",
@@ -1713,7 +2564,7 @@ def _dashboard_html() -> str:
 
       const correlation = report.correlation_matrix || {};
       const labels = Object.keys(correlation);
-      const z = labels.map((row) => labels.map((col) => correlation[row][col] ?? 0));
+      const z = labels.map((row) => labels.map((col) => correlation[row][col] == null ? 0 : correlation[row][col]));
       Plotly.newPlot("correlation-chart", [{
         type: "heatmap",
         x: labels,
@@ -1722,10 +2573,10 @@ def _dashboard_html() -> str:
         zmin: -1,
         zmax: 1,
         colorscale: [
-          [0, "#312e81"],
-          [0.35, "#0f172a"],
-          [0.65, "#0e7490"],
-          [1, "#2dd4bf"],
+          [0, "#7f3434"],
+          [0.35, "#252a2d"],
+          [0.65, "#596269"],
+          [1, "#d99a32"],
         ],
         hovertemplate: "%{y} vs %{x}: %{z:.2f}<extra></extra>",
       }], {
@@ -1776,13 +2627,19 @@ def _dashboard_html() -> str:
     }
 
     refreshButton.addEventListener("click", loadReport);
-    portfolioSelect.addEventListener("change", loadReport);
+    portfolioSelect.addEventListener("change", async () => {
+      await Promise.all([loadReport(), loadStressScenarios()]);
+    });
     dataMode.addEventListener("change", loadReport);
     openCopilotButton.addEventListener("click", openCopilot);
     closeCopilotButton.addEventListener("click", closeCopilot);
     generateReportButton.addEventListener("click", generateRiskReportDraft);
     copyReportButton.addEventListener("click", copyGeneratedReport);
     downloadReportButton.addEventListener("click", downloadGeneratedReport);
+    closeBaselReportButton.addEventListener("click", closeBaselDashboard);
+    printBaselReportButton.addEventListener("click", () => window.print());
+    runStressButton.addEventListener("click", runSelectedStressTest);
+    downloadStressButton.addEventListener("click", downloadStressReport);
     copilotResizeHandle.addEventListener("pointerdown", startCopilotResize);
     togglePromptsButton.addEventListener("click", () => {
       setPromptCollapsed(!promptPanel.classList.contains("collapsed"));
@@ -1811,10 +2668,10 @@ def _dashboard_html() -> str:
     setPromptCollapsed(sessionStorage.getItem("copilotPromptsCollapsed") === "true");
 
     loadPortfolios()
-      .then(loadReport)
+      .then(() => Promise.all([loadReport(), loadStressScenarios()]))
       .catch((error) => {
         console.error(error);
-        document.body.insertAdjacentHTML("afterbegin", `<div style="padding:16px; color:#fb7185;">Failed to load dashboard data.</div>`);
+        document.body.insertAdjacentHTML("afterbegin", `<div class="system-alert" role="alert">DASHBOARD INITIALIZATION FAILED // CHECK API CONNECTIVITY</div>`);
       });
   </script>
 </body>

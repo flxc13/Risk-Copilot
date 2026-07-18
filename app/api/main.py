@@ -10,6 +10,7 @@ from app.api.routes.market_data import router as market_data_router
 from app.api.routes.phase1 import router as phase1_router
 from app.api.routes.reports import router as reports_router
 from app.api.routes.risk import router as risk_router
+from app.api.routes.stress import router as stress_router
 from app.core.config import get_settings
 from app.core.logging import configure_logging
 
@@ -35,6 +36,7 @@ def create_app() -> FastAPI:
     app.include_router(market_data_router, prefix=settings.api_prefix)
     app.include_router(phase1_router, prefix=settings.api_prefix)
     app.include_router(risk_router, prefix=settings.api_prefix)
+    app.include_router(stress_router, prefix=settings.api_prefix)
     app.include_router(chat_router, prefix=settings.api_prefix)
     app.include_router(reports_router, prefix=settings.api_prefix)
     return app

@@ -69,6 +69,45 @@ def basel_historical_var(returns: pd.Series, confidence: float = 0.99, horizon_d
     return float(one_day_var * np.sqrt(max(horizon_days, 1)))
 
 
+def basel_rolling_var_estimates(
+    returns: pd.Series,
+    confidence: float = 0.99,
+    horizon_days: int = 10,
+    estimation_window: int = 250,
+    minimum_observations: int = 60,
+) -> pd.Series:
+    if returns.empty:
+        return pd.Series(dtype=float)
+
+    resolved_minimum = min(max(minimum_observations, 1), max(estimation_window, 1))
+    one_day_estimates = returns.rolling(
+        window=max(estimation_window, 1),
+        min_periods=resolved_minimum,
+    ).quantile(1 - confidence)
+    return (-one_day_estimates).clip(lower=0.0) * np.sqrt(max(horizon_days, 1))
+
+
+def basel_average_var(
+    returns: pd.Series,
+    confidence: float = 0.99,
+    horizon_days: int = 10,
+    averaging_window: int = 60,
+    estimation_window: int = 250,
+    minimum_observations: int = 60,
+) -> tuple[float, int]:
+    estimates = basel_rolling_var_estimates(
+        returns,
+        confidence=confidence,
+        horizon_days=horizon_days,
+        estimation_window=estimation_window,
+        minimum_observations=minimum_observations,
+    ).dropna()
+    sample = estimates.tail(max(averaging_window, 1))
+    if sample.empty:
+        return basel_historical_var(returns, confidence=confidence, horizon_days=horizon_days), 0
+    return float(sample.mean()), int(len(sample))
+
+
 def _stress_window_slice(returns: pd.Series, window: int = 125) -> pd.Series:
     if returns.empty:
         return returns
@@ -106,17 +145,28 @@ def basel_backtesting_exceptions(
     returns: pd.Series,
     confidence: float = 0.99,
     backtesting_window: int = 250,
+    estimation_window: int = 250,
+    minimum_estimation_observations: int = 60,
 ) -> tuple[int, int]:
     if returns.empty:
         return 0, 0
 
-    sample = returns.tail(max(backtesting_window, 1))
-    var_99_1d = historical_var(sample, confidence=confidence)
-    exceptions = int((sample < -var_99_1d).sum())
-    return exceptions, int(len(sample))
+    forecasts: list[tuple[float, float]] = []
+    start_position = max(minimum_estimation_observations, 1)
+    for position in range(start_position, len(returns)):
+        history_start = max(0, position - max(estimation_window, 1))
+        estimation_sample = returns.iloc[history_start:position]
+        forecast_var = historical_var(estimation_sample, confidence=confidence)
+        forecasts.append((float(returns.iloc[position]), forecast_var))
+
+    sample = forecasts[-max(backtesting_window, 1) :]
+    exceptions = sum(realized_return < -forecast_var for realized_return, forecast_var in sample)
+    return int(exceptions), int(len(sample))
 
 
-def basel_traffic_light_zone(exceptions: int) -> str:
+def basel_traffic_light_zone(exceptions: int, observations: int = 250) -> str:
+    if observations < 250:
+        return "insufficient"
     if exceptions <= 4:
         return "green"
     if exceptions <= 9:

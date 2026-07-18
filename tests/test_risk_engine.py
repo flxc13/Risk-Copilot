@@ -7,6 +7,7 @@ from app.data.portfolio_catalog import list_portfolios
 from app.services.risk_service import generate_risk_report
 from app.risk.engine import build_risk_report
 from app.risk.limits import assess_limits
+from app.risk.var import basel_average_var, basel_backtesting_exceptions, basel_traffic_light_zone
 
 
 def test_build_risk_report_contains_expected_fields() -> None:
@@ -29,7 +30,12 @@ def test_build_risk_report_contains_expected_fields() -> None:
     assert isinstance(report["basel_stress_proxies_used"], list)
     assert isinstance(report["basel_svar_governance_warnings"], list)
     assert report["basel_backtesting_observations"] > 0
-    assert report["basel_backtesting_zone"] in {"green", "yellow", "red"}
+    assert report["basel_backtesting_zone"] in {"green", "yellow", "red", "insufficient"}
+    assert report["basel_var_averaging_observations"] > 0
+    assert report["basel_stressed_var_averaging_observations"] > 0
+    assert report["basel_var_methodology"]
+    assert report["basel_backtesting_methodology"]
+    assert report["basel_implementation_limitations"]
     assert report["basel_capital_multiplier"] >= 3.0
     assert report["basel_total_capital_charge"] >= 0
     assert report["portfolio_value_series"]
@@ -144,3 +150,35 @@ def test_assess_limits_excludes_cash_from_single_name_warning() -> None:
     )
 
     assert all("CASH" not in warning for warning in warnings)
+
+
+def test_basel_average_var_averages_daily_estimates() -> None:
+    returns = pd.Series([-0.01, 0.002, -0.02, 0.003, -0.03, 0.004, -0.04, 0.005])
+
+    average_var, observations = basel_average_var(
+        returns,
+        confidence=0.75,
+        horizon_days=1,
+        averaging_window=3,
+        estimation_window=5,
+        minimum_observations=3,
+    )
+
+    assert observations == 3
+    assert average_var > 0
+
+
+def test_basel_backtesting_uses_prior_observations_and_flags_short_samples() -> None:
+    returns = pd.Series([0.01, 0.01, 0.01, -0.20, 0.01])
+
+    exceptions, observations = basel_backtesting_exceptions(
+        returns,
+        confidence=0.99,
+        backtesting_window=250,
+        estimation_window=3,
+        minimum_estimation_observations=3,
+    )
+
+    assert exceptions == 1
+    assert observations == 2
+    assert basel_traffic_light_zone(exceptions, observations) == "insufficient"

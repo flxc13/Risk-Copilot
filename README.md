@@ -6,8 +6,8 @@ Production-style Python app for portfolio risk analytics, Basel-style capital mo
 
 This project separates deterministic market-risk computation from language generation:
 
-- Deterministic Python logic computes portfolio NAV, returns, drawdown, VaR, stressed VaR, and Basel-style capital components.
-- Service and report layers package market-data outputs into dashboard payloads and markdown reporting.
+- Deterministic Python logic computes portfolio NAV, returns, drawdown, VaR, stressed VaR, and legacy Basel 2.5-style illustrative capital components.
+- Service and report layers package market-data outputs into dashboard payloads, concise markdown, and a structured Basel capital dashboard.
 - API routes stay thin and delegate business logic to services.
 - The dashboard consumes the same API surface used by report generation and portfolio inspection.
 
@@ -118,6 +118,10 @@ The repository is structured into clear layers:
   - `risk_report()`: returns the portfolio analytics and Basel-style risk report payload.
   - `portfolios()`: returns the sample strategy portfolio catalog metadata.
 
+- `app/api/routes/stress.py`
+  - `stress_scenarios()`: lists historical scenarios and portfolio approval status.
+  - `stress_run()`: executes a governed historical replay through the same typed tool used by chat.
+
 - `app/api/routes/chat.py`
   - `chat_route()`: validates payload and delegates to `ChatService.chat()`.
 
@@ -131,9 +135,14 @@ The repository is structured into clear layers:
   - `_select_governed_stress_market_data()`: evaluates approved stress candidate windows and selects the conservative calibration.
   - `generate_risk_report()`: returns the full portfolio analytics payload in demo or live market-data mode.
 
+- `app/services/stress_service.py`
+  - `list_stress_scenarios()`: returns the governed scenario catalog for a portfolio.
+  - `resolve_stress_scenario()`: maps explicit stress-test chat intent to an approved scenario.
+  - `run_stress_test()`: marks current positions, loads governed historical paths, executes replay, and assembles the expert-facing report.
+
 - `app/services/report_service.py`
   - `generate_report()`: produces markdown reports for morning notes, reviews, and Basel-style capital monitoring.
-  - `_basel_simplified_report()`: emits the Basel 2.5 internal monitoring format with selected stress-window disclosure.
+  - `_basel_simplified_report()`: emits deterministic legacy Basel 2.5-style monitoring output with structured dashboard data and selected stress-window disclosure. AI providers do not rewrite this report type.
 
 - `app/services/phase1_service.py`
   - `get_phase1_status()`: returns evidence-backed delivery status for the Phase 1 implementation scope.
@@ -161,11 +170,15 @@ The repository is structured into clear layers:
   - `build_risk_report()`: composes the dashboard/report payload from holdings, prices, benchmark data, and Basel metrics.
   - `portfolio_returns_from_current_values()`: applies historical stress returns to current portfolio market values for sVaR.
 
+- `app/risk/stress.py`
+  - `run_historical_replay()`: replays observed instrument paths on current marked values, finds the worst portfolio point, and reconciles position P&L attribution.
+
 - `app/risk/var.py`
   - `historical_var()`, `expected_shortfall()`, `rolling_var()`: base market-risk measures.
   - `basel_historical_var()`: 99% 10-day Basel-style VaR measure.
+  - `basel_rolling_var_estimates()`, `basel_average_var()`: daily historical VaR estimates and a genuine average of the latest 60 available estimates.
   - `basel_stressed_historical_var()`: fallback stressed VaR when a separate stress frame is unavailable.
-  - `basel_backtesting_exceptions()`, `basel_multiplier()`: backtesting and multiplier helpers.
+  - `basel_backtesting_exceptions()`, `basel_multiplier()`: prior-window one-day forecast backtesting and multiplier helpers; traffic-light classification is withheld until 250 forecasts are available.
 
 - `app/risk/exposure.py`
   - `exposure_by_ticker()`, `exposure_by_asset_class()`, `top_holdings()`: portfolio exposure and concentration helpers.
@@ -189,6 +202,9 @@ The repository is structured into clear layers:
 
 - `app/tools/drivers_tool.py`
   - `DriversToolInput`, `DriversToolOutput`, `run_drivers_tool()`.
+
+- `app/tools/stress_tool.py`
+  - `StressToolInput`, `run_stress_tool()`: typed deterministic tool callable by the chat workflow and manual API.
 
 ### Models and Schemas
 
@@ -249,6 +265,8 @@ The repository is structured into clear layers:
 - `GET /api/portfolios`
 - `GET /api/phase1/status`
 - `GET /api/risk/report`
+- `GET /api/stress/scenarios`
+- `POST /api/stress/runs`
 - `POST /api/chat`
 - `POST /api/reports/generate`
 
@@ -257,9 +275,32 @@ The repository is structured into clear layers:
 1. The dashboard or client selects a sample portfolio and demo/live market-data mode.
 2. The risk service fetches recent market history plus approved candidate stress windows.
 3. The service evaluates stressed VaR across the approved candidate set and selects the conservative calibration window.
-4. The risk engine computes NAV series, returns, VaR, sVaR, drawdown, benchmark statistics, exposures, and Basel-style capital measures.
-5. The report service converts the risk payload into markdown when the reporting route is used.
+4. The risk engine computes NAV series, returns, VaR, sVaR, genuine 60-estimate averages, out-of-sample exception counts, drawdown, benchmark statistics, exposures, and illustrative capital measures.
+5. The report service converts the risk payload into markdown. For the Basel report type it also returns a deterministic structured `dashboard` object containing headline metrics, capital stack, model evidence, backtesting status, stress governance, formulas, and limitations.
 6. The API returns JSON for dashboard/report consumers, with fallback demo mode if live market data is unavailable.
+
+## Historical Stress Testing
+
+The stress function is available through both the dashboard and Copilot chat. Both entry points execute the same `run_stress_tool`; the language model selects and invokes the tool but does not calculate or alter stress results.
+
+For Copilot requests with `POE_API_KEY` configured, the server performs a real OpenAI-compatible Responses API tool loop:
+
+1. Send the user request, baseline portfolio context, and a dynamic `run_stress_test` function schema to the configured model.
+2. Restrict `scenario_id` in that schema to scenarios approved for the selected portfolio; portfolio ID and data mode remain server-bound.
+3. Execute the model's function call through the deterministic stress engine.
+4. Send the model function call and full `function_call_output` back in a stateless second request, compatible with Zero Data Retention organizations.
+5. Return the model's grounded report plus the unchanged structured stress result to the dashboard.
+
+Successful live tool runs return `mode: poe_tool_execution`. If no API key is configured, the app uses `offline_tool_fallback`. Provider failures are explicitly labeled `provider_error_tool_fallback`; they are not presented as successful LLM tool calls.
+
+- Manual: select an approved scenario under **Historical stress testing** and choose **Run stress test**.
+- AI: ask, for example, `Run the approved growth stress test and give me the report.`
+- Current marks can use deterministic demo prices or live yfinance history.
+- Scenario paths always come from governed historical windows through `ingest_governed_stress_prices()`; missing history may use only the disclosed approved proxy mappings.
+- The engine applies cumulative observed instrument returns to current marked position values, finds the worst point in the window, and reconciles total P&L to position attribution.
+- The visual result includes loss KPIs, P&L path, top contributors, data mode, proxy/coverage disclosure, methodology limitations, and downloadable HTML.
+
+This is a static-balance-sheet historical replay, not a forecast or regulatory capital calculation. It does not model trading responses, liquidity/market impact, funding, margin, forced liquidation, or nonlinear optionality beyond the observed instrument or approved proxy path.
 
 ## Configuration
 
@@ -285,7 +326,7 @@ Defaults are applied if environment variables are absent or unparsable.
 - Deterministic risk engine:
   - Portfolio NAV and return-series construction
   - Historical VaR and expected shortfall
-  - Basel 2.5-style VaR, stressed VaR, backtesting, and capital legs
+  - Legacy Basel 2.5-style VaR, stressed VaR, rolling-average inputs, prior-window backtesting, and illustrative capital legs
   - Exposure, concentration, benchmark, and drawdown analytics
 - Typed tool wrappers around risk engine functions
 - Orchestrator for tool-calling and interpretation assembly
@@ -293,7 +334,10 @@ Defaults are applied if environment variables are absent or unparsable.
 - Local retrieval via Chroma for policy context in chat responses
 - Floating dashboard AI Copilot for grounded portfolio Q&A
 - Markdown report generation for morning notes, end-of-day wraps, and weekly reviews, with styled HTML export from the dashboard
-- Basel 2.5-style capital monitoring with governed candidate stress windows, conservative stress-window selection, yfinance stress histories, proxy mappings for short-history instruments, and governance warnings when stress calibration needs review
+- Full-screen, print-ready Basel capital dashboard with first-glance KPIs, proportional capital stack, calculation trace, classification evidence, stress governance, and explicit implementation limitations
+- Governed historical stress testing callable manually or through deterministic Copilot tool routing, with path analytics, reconciled position attribution, and downloadable reporting
+- Legacy Basel 2.5-style illustrative monitoring with governed candidate stress windows, conservative stress-window selection, yfinance stress histories, proxy mappings for short-history instruments, and governance warnings when stress calibration needs review
+- Explicit scope boundary: this demo does not claim regulatory/model approval and does not implement current FRTB IMA expected shortfall, liquidity horizons, modellability/NMRF, PLA, or default risk charge requirements
 - Deterministic sample-data report fallback when the AI provider is unavailable
 
 ## Implementation Checklist
@@ -307,7 +351,8 @@ Status reflects current code in this repository.
 - [x] Local policy-context retrieval in chat flow (Chroma)
 - [x] Basic automated tests for health endpoint and risk engine primitives
 - [x] API tests for chat fallback, report fallback, dashboard rendering, market data, and risk output
-- [x] Basel 2.5-style VaR/sVaR capital monitoring with governed stress-window assignment and proxy disclosure
+- [x] Legacy Basel 2.5-style VaR/sVaR illustrative monitoring with governed stress-window assignment, rolling averages, prior-window backtesting, proxy disclosure, and a structured visual dashboard
+- [x] Manual and AI-triggered historical stress replay with portfolio scenario approvals, typed tool execution, P&L reconciliation, governance disclosure, and dashboard reporting
 - [ ] CI workflow for automated test/lint on push/PR
 - [ ] Machine-readable progress tracker (for example `progress.json`)
 
@@ -383,12 +428,30 @@ curl -X POST http://127.0.0.1:8000/api/reports/generate \
   }'
 ```
 
+Approved stress scenarios:
+
+```bash
+curl "http://127.0.0.1:8000/api/stress/scenarios?portfolio_id=core_long_equity"
+```
+
+Run a historical stress test:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/stress/runs \
+  -H "Content-Type: application/json" \
+  -d '{
+    "portfolio_id": "core_long_equity",
+    "scenario_id": "growth_2022",
+    "use_demo_data": true
+  }'
+```
+
 Chat:
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/chat \
   -H "Content-Type: application/json" \
-  -d '{"message": "Give me a risk summary for this portfolio"}'
+  -d '{"question": "Run the approved growth stress test and give me the report", "portfolio_id": "core_long_equity", "use_demo_data": true}'
 ```
 
 ## Run Tests

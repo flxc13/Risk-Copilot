@@ -46,15 +46,24 @@ def test_generate_basel_style_report_returns_capital_charge_section(monkeypatch)
 
     assert response.status_code == 200
     body = response.json()
-    assert body["mode"] == "offline_sample_report"
+    assert body["mode"] == "deterministic_basel_dashboard"
     assert body["title"] == "Basel-Style Risk Capital Charge Report"
-    assert "Basel 2.5 IMA Capital Monitoring Statement" in body["report"]
+    assert "Legacy Basel 2.5 IMA-Style Capital Monitoring" in body["report"]
     assert "not** a legal/regulatory filing" in body["report"]
-    assert "## Section 3: VaR Model Outputs (99%, 10-day)" in body["report"]
-    assert "## Section 4: Backtesting and Multiplier" in body["report"]
-    assert "## Section 5: Capital Requirement Calculation" in body["report"]
-    assert "## Section 8: Stress Data Governance" in body["report"]
+    assert "## At a Glance" in body["report"]
+    assert "## VaR Model Outputs (99%, 10-day)" in body["report"]
+    assert "## Backtesting and Multiplier" in body["report"]
+    assert "## Capital Stack" in body["report"]
+    assert "## Stress Data Governance" in body["report"]
     assert "Approved Stressed VaR window ID" in body["report"]
     assert "Total market risk capital requirement" in body["report"]
+    assert body["dashboard"]["status"]["traffic_light"] == "insufficient"
+    assert len(body["dashboard"]["headline_metrics"]) == 4
+    assert body["dashboard"]["capital_stack"][0]["status"] == "calculated"
+    assert body["dashboard"]["capital_stack"][2]["status"] == "not_implemented"
+    assert body["dashboard"]["calculation_evidence"][0]["formula"]
+    assert body["dashboard"]["stress_governance"]["selected_window_id"]
+    assert body["dashboard"]["limitations"]
+    assert "not FRTB IMA" in body["dashboard"]["framework"]
     assert body["citations"]
     get_settings.cache_clear()

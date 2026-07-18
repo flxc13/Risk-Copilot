@@ -11,6 +11,7 @@ from app.risk.exposure import exposure_by_asset_class, exposure_by_ticker, top_h
 from app.risk.limits import assess_limits
 from app.risk.var import (
     annualized_volatility,
+    basel_average_var,
     basel_backtesting_exceptions,
     basel_historical_var,
     basel_multiplier,
@@ -215,14 +216,22 @@ def build_risk_report(
             horizon_days=10,
             stress_window=125,
         )
-    var_60d_average = basel_historical_var(portfolio_returns.tail(60), confidence=0.99, horizon_days=10)
-    stressed_var_60d_average = basel_historical_var(stress_returns.tail(60), confidence=0.99, horizon_days=10)
+    var_60d_average, var_averaging_observations = basel_average_var(
+        portfolio_returns,
+        confidence=0.99,
+        horizon_days=10,
+    )
+    stressed_var_60d_average, stressed_var_averaging_observations = basel_average_var(
+        stress_returns,
+        confidence=0.99,
+        horizon_days=10,
+    )
     backtesting_exceptions, backtesting_observations = basel_backtesting_exceptions(
         portfolio_returns,
         confidence=0.99,
         backtesting_window=250,
     )
-    backtesting_zone = basel_traffic_light_zone(backtesting_exceptions)
+    backtesting_zone = basel_traffic_light_zone(backtesting_exceptions, backtesting_observations)
     basel_capital_multiplier = basel_multiplier(backtesting_exceptions)
     basel_var_capital_charge = latest_value * max(basel_var_99_10d, basel_capital_multiplier * var_60d_average)
     basel_stressed_var_capital_charge = latest_value * max(
@@ -320,15 +329,28 @@ def build_risk_report(
         "basel_svar_governance_warnings": basel_svar_governance_warnings,
         "basel_var_60d_avg_99_10d": var_60d_average,
         "basel_stressed_var_60d_avg_99_10d": stressed_var_60d_average,
+        "basel_var_averaging_observations": var_averaging_observations,
+        "basel_stressed_var_averaging_observations": stressed_var_averaging_observations,
         "basel_backtesting_exceptions_250d": backtesting_exceptions,
         "basel_backtesting_observations": backtesting_observations,
         "basel_backtesting_zone": backtesting_zone,
+        "basel_var_methodology": "Historical simulation at 99% one-day confidence, scaled to 10 days using square-root-of-time.",
+        "basel_backtesting_methodology": "One-day historical VaR forecasts use only returns available before each realized P&L observation.",
+        "basel_capital_framework": "Legacy Basel 2.5 VaR/sVaR-style illustrative internal monitoring; not FRTB IMA, a regulatory filing, or a model approval claim.",
+        "basel_implementation_limitations": [
+            "The 10-day horizon uses square-root-of-time scaling rather than overlapping 10-day full revaluation.",
+            "Backtesting uses clean portfolio returns as a proxy for one-day actual P&L; hypothetical P&L attribution is not implemented.",
+            "IRC and CRM are outside this MVP and are shown as zero, not estimated risk charges.",
+            "This legacy Basel 2.5-style view does not implement FRTB IMA expected shortfall, liquidity horizons, modellability, NMRF, PLA, or default risk charge requirements.",
+        ],
         "basel_capital_multiplier": basel_capital_multiplier,
         "basel_var_capital_charge": basel_var_capital_charge,
         "basel_stressed_var_capital_charge": basel_stressed_var_capital_charge,
         "basel_irc_charge": basel_irc_charge,
         "basel_crm_charge": basel_crm_charge,
         "basel_total_capital_charge": basel_total_capital_charge,
+        "basel_capital_intensity": basel_total_capital_charge / latest_value if latest_value > 0 else 0.0,
+        "basel_rwa_equivalent": basel_total_capital_charge * 12.5,
         "maximum_drawdown": drawdown,
         "current_drawdown": current_drawdown(portfolio_values),
         "drawdown_series": drawdown_series,

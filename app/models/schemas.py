@@ -49,15 +49,23 @@ class RiskReport(BaseModel):
     basel_svar_governance_warnings: list[str] = Field(default_factory=list)
     basel_var_60d_avg_99_10d: float = 0.0
     basel_stressed_var_60d_avg_99_10d: float = 0.0
+    basel_var_averaging_observations: int = 0
+    basel_stressed_var_averaging_observations: int = 0
     basel_backtesting_exceptions_250d: int = 0
     basel_backtesting_observations: int = 0
     basel_backtesting_zone: str = "green"
+    basel_var_methodology: str = ""
+    basel_backtesting_methodology: str = ""
+    basel_capital_framework: str = ""
+    basel_implementation_limitations: list[str] = Field(default_factory=list)
     basel_capital_multiplier: float = 0.0
     basel_var_capital_charge: float = 0.0
     basel_stressed_var_capital_charge: float = 0.0
     basel_irc_charge: float = 0.0
     basel_crm_charge: float = 0.0
     basel_total_capital_charge: float = 0.0
+    basel_capital_intensity: float = 0.0
+    basel_rwa_equivalent: float = 0.0
     maximum_drawdown: float
     current_drawdown: float
     drawdown_series: list[dict[str, float | str]] = Field(default_factory=list)
@@ -78,3 +86,59 @@ class RiskReport(BaseModel):
     rolling_volatility: list[float] = Field(default_factory=list)
     rolling_var_95: list[float] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
+
+
+class StressScenarioSummary(BaseModel):
+    scenario_id: str
+    label: str
+    start_date: str
+    end_date: str
+    approved_for_portfolio: bool
+
+
+class StressPositionImpact(BaseModel):
+    ticker: str
+    asset_class: str
+    risk_bucket: str
+    current_value: float
+    stressed_value: float
+    pnl: float
+    return_: float = Field(alias="return")
+    loss_contribution: float
+
+
+class StressPathPoint(BaseModel):
+    date: str
+    portfolio_value: float
+    pnl: float
+    return_: float = Field(alias="return")
+
+
+class StressRunResult(BaseModel):
+    run_id: str
+    generated_at: datetime
+    portfolio_id: str
+    portfolio_name: str
+    scenario_id: str
+    scenario_label: str
+    scenario_start_date: str
+    scenario_end_date: str
+    data_mode: str
+    methodology: str
+    current_value: float
+    worst_stressed_value: float
+    worst_pnl: float
+    worst_loss: float
+    worst_return: float
+    worst_date: str
+    end_stressed_value: float
+    end_pnl: float
+    end_return: float
+    end_date: str
+    position_impacts: list[StressPositionImpact]
+    path: list[StressPathPoint]
+    proxies_used: list[dict[str, float | str]] = Field(default_factory=list)
+    coverage_warnings: list[str] = Field(default_factory=list)
+    limitations: list[str] = Field(default_factory=list)
+    attribution_reconciled: bool
+    report: str

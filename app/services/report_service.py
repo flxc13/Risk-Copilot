@@ -14,6 +14,7 @@ class GeneratedReport:
     mode: str
     model: str
     citations: list[str]
+    dashboard: dict[str, object] | None = None
 
 
 REPORT_TITLES = {
@@ -101,6 +102,93 @@ def _max_ticker_weight(report: Mapping[str, object]) -> float:
     return max(float(weight) for weight in exposures.values())
 
 
+def _basel_dashboard_data(
+    report: Mapping[str, object],
+    audience: str,
+    generated_at: str,
+) -> dict[str, object]:
+    total_value = _as_float(report, "total_value")
+    total_charge = _as_float(report, "basel_total_capital_charge")
+    observations = int(_as_float(report, "basel_backtesting_observations"))
+    zone = str(report.get("basel_backtesting_zone", "insufficient"))
+    zone_label = zone.upper() if zone != "insufficient" else "NOT CLASSIFIED"
+    zone_reason = (
+        f"{observations}/250 out-of-sample observations; traffic-light classification withheld."
+        if zone == "insufficient"
+        else f"{observations} out-of-sample observations support the {zone} traffic-light classification."
+    )
+
+    return {
+        "portfolio_name": str(report.get("portfolio_name", "Selected portfolio")),
+        "desk": str(report.get("strategy_style", "Unknown strategy")),
+        "audience": audience,
+        "generated_at": generated_at,
+        "framework": str(report.get("basel_capital_framework", "Basel 2.5-style illustrative internal monitoring.")),
+        "status": {
+            "label": "INTERNAL MONITORING",
+            "tone": "review",
+            "traffic_light": zone,
+            "traffic_light_label": zone_label,
+            "traffic_light_reason": zone_reason,
+        },
+        "headline_metrics": [
+            {"label": "Portfolio value", "value": total_value, "format": "money"},
+            {"label": "Total capital", "value": total_charge, "format": "money"},
+            {
+                "label": "Capital intensity",
+                "value": _as_float(report, "basel_capital_intensity"),
+                "format": "percent",
+            },
+            {
+                "label": "RWA equivalent",
+                "value": _as_float(report, "basel_rwa_equivalent"),
+                "format": "money",
+            },
+        ],
+        "capital_stack": [
+            {"label": "VaR capital leg", "value": _as_float(report, "basel_var_capital_charge"), "status": "calculated"},
+            {"label": "Stressed VaR capital leg", "value": _as_float(report, "basel_stressed_var_capital_charge"), "status": "calculated"},
+            {"label": "IRC", "value": _as_float(report, "basel_irc_charge"), "status": "not_implemented"},
+            {"label": "CRM", "value": _as_float(report, "basel_crm_charge"), "status": "not_implemented"},
+        ],
+        "model_metrics": [
+            {"label": "Current VaR", "value": _as_float(report, "basel_var_99_10d"), "format": "percent", "basis": "99% / 10-day"},
+            {"label": "60-day average VaR", "value": _as_float(report, "basel_var_60d_avg_99_10d"), "format": "percent", "basis": f"{int(_as_float(report, 'basel_var_averaging_observations'))} estimates"},
+            {"label": "Current stressed VaR", "value": _as_float(report, "basel_stressed_var_99_10d"), "format": "percent", "basis": "99% / 10-day"},
+            {"label": "60-day average stressed VaR", "value": _as_float(report, "basel_stressed_var_60d_avg_99_10d"), "format": "percent", "basis": f"{int(_as_float(report, 'basel_stressed_var_averaging_observations'))} estimates"},
+            {"label": "Multiplier", "value": _as_float(report, "basel_capital_multiplier"), "format": "multiple", "basis": "Provisional floor; classification withheld" if zone == "insufficient" else "Floor plus exception add-on"},
+            {"label": "Exceptions", "value": int(_as_float(report, "basel_backtesting_exceptions_250d")), "format": "integer", "basis": f"{observations} forecasts"},
+        ],
+        "stress_governance": {
+            "selected_window_id": str(report.get("basel_stress_window_id", "sample_window")),
+            "selected_window": str(report.get("basel_stress_window", "Sample stress window")),
+            "data_mode": str(report.get("basel_stress_data_mode", "sample_window")),
+            "candidate_windows": list(report.get("basel_stress_candidate_window_ids", [])),
+            "methodology": str(report.get("basel_stress_methodology", "")),
+            "proxies": list(report.get("basel_stress_proxies_used", [])),
+            "warnings": list(report.get("basel_svar_governance_warnings", [])),
+        },
+        "calculation_evidence": [
+            {
+                "label": "VaR leg",
+                "formula": "MV x max(current VaR, m x 60-day average VaR)",
+                "value": _as_float(report, "basel_var_capital_charge"),
+            },
+            {
+                "label": "Stressed VaR leg",
+                "formula": "MV x max(current sVaR, m x 60-day average sVaR)",
+                "value": _as_float(report, "basel_stressed_var_capital_charge"),
+            },
+        ],
+        "methodology": [
+            str(report.get("basel_var_methodology", "")),
+            str(report.get("basel_backtesting_methodology", "")),
+        ],
+        "limitations": list(report.get("basel_implementation_limitations", [])),
+        "control_warnings": list(report.get("warnings", [])),
+    }
+
+
 def _basel_simplified_report(report: Mapping[str, object], audience: str, generated_at: str) -> GeneratedReport:
     total_value = _as_float(report, "total_value")
     var95 = _as_float(report, "historical_var_95")
@@ -127,65 +215,52 @@ def _basel_simplified_report(report: Mapping[str, object], audience: str, genera
     basel_backtesting_zone = str(report.get("basel_backtesting_zone", "green"))
     basel_capital_multiplier = _as_float(report, "basel_capital_multiplier")
 
-    if basel_var_99_10d == 0.0:
-        basel_var_99_10d = var95 * (10**0.5)
-    if basel_stressed_var_99_10d == 0.0:
-        basel_stressed_var_99_10d = max(var95 * 1.25, es95) * (10**0.5)
-    if basel_var_60d_avg_99_10d == 0.0:
-        basel_var_60d_avg_99_10d = basel_var_99_10d
-    if basel_stressed_var_60d_avg_99_10d == 0.0:
-        basel_stressed_var_60d_avg_99_10d = basel_stressed_var_99_10d
-    if basel_capital_multiplier == 0.0:
-        basel_capital_multiplier = 3.0
-
     basel_var_capital_charge = _as_float(report, "basel_var_capital_charge")
     basel_stressed_var_capital_charge = _as_float(report, "basel_stressed_var_capital_charge")
     basel_irc_charge = _as_float(report, "basel_irc_charge")
     basel_crm_charge = _as_float(report, "basel_crm_charge")
     basel_total_capital_charge = _as_float(report, "basel_total_capital_charge")
 
-    if basel_var_capital_charge == 0.0:
-        basel_var_capital_charge = total_value * max(basel_var_99_10d, basel_capital_multiplier * basel_var_60d_avg_99_10d)
-    if basel_stressed_var_capital_charge == 0.0:
-        basel_stressed_var_capital_charge = total_value * max(
-            basel_stressed_var_99_10d,
-            basel_capital_multiplier * basel_stressed_var_60d_avg_99_10d,
-        )
-    if basel_total_capital_charge == 0.0:
-        basel_total_capital_charge = (
-            basel_var_capital_charge + basel_stressed_var_capital_charge + basel_irc_charge + basel_crm_charge
-        )
-
-    rwa_proxy = basel_total_capital_charge / 0.08 if basel_total_capital_charge > 0 else 0.0
+    rwa_proxy = _as_float(report, "basel_rwa_equivalent") or (
+        basel_total_capital_charge * 12.5 if basel_total_capital_charge > 0 else 0.0
+    )
 
     portfolio_name = report.get("portfolio_name", "Selected portfolio")
     desk_name = report.get("strategy_style", "Unknown strategy")
 
     markdown = "\n".join(
         [
-            f"# Basel 2.5 IMA Capital Monitoring Statement: {portfolio_name}",
+            f"# Legacy Basel 2.5 IMA-Style Capital Monitoring: {portfolio_name}",
             "",
             f"Generated: {generated_at}",
             f"Audience: {audience}",
-            "Framework: Basel 2.5-style internal monitoring format (VaR + Stressed VaR stack)",
+            "Framework: Legacy Basel 2.5-style illustrative internal monitoring (VaR + Stressed VaR stack); not FRTB IMA",
             "",
             "> **Important:** This is an internal monitoring statement. "
             "It is **not** a legal/regulatory filing and does not represent supervisory approval status.",
             "",
-            "## Section 1: Reporting Scope and Desk Mapping",
+            "## At a Glance",
+            "| Measure | Result |",
+            "|---|---:|",
+            f"| Portfolio value | **{_money(total_value)}** |",
+            f"| Total illustrative capital | **{_money(basel_total_capital_charge)}** |",
+            f"| Capital intensity | **{_pct(basel_total_capital_charge / total_value if total_value > 0 else 0.0)}** |",
+            f"| Backtesting classification | **{basel_backtesting_zone.upper() if basel_backtesting_zone != 'insufficient' else 'NOT CLASSIFIED - INSUFFICIENT OBSERVATIONS'}** |",
+            "",
+            "## Scope and Desk Mapping",
             f"- Reporting desk: **{desk_name}**",
             f"- Portfolio market value: **{_money(total_value)}**",
-            "- Regulatory perimeter in this MVP: market risk capital stack under Basel 2.5-style VaR/sVaR monitoring",
+            "- Demo scope: market risk capital stack under legacy Basel 2.5-style VaR/sVaR monitoring",
             "- Modules excluded from this MVP capital stack: IRC and CRM advanced treatment (carried as explicit placeholders)",
             "",
-            "## Section 2: Core Risk Inputs",
+            "## Core Risk Inputs",
             f"- Historical VaR 95 (legacy dashboard metric): **{_pct(var95)}**",
             f"- Expected shortfall 95 (legacy dashboard metric): **{_pct(es95)}**",
             f"- Annualized volatility: **{_pct(volatility)}**",
             f"- Maximum drawdown: **{_pct(max_drawdown)}**",
             f"- Largest single-name weight: **{_pct(max_weight)}**",
             "",
-            "## Section 3: VaR Model Outputs (99%, 10-day)",
+            "## VaR Model Outputs (99%, 10-day)",
             "- Current VaR calibration window: **recent market-data window**",
             f"- Approved candidate stress windows: **{basel_stress_candidate_windows}**",
             f"- Approved Stressed VaR window ID: **{basel_stress_window_id}**",
@@ -197,15 +272,16 @@ def _basel_simplified_report(report: Mapping[str, object], audience: str, genera
             f"- 60-day average VaR(99%, 10d): **{_pct(basel_var_60d_avg_99_10d)}**",
             f"- 60-day average Stressed VaR(99%, 10d): **{_pct(basel_stressed_var_60d_avg_99_10d)}**",
             "",
-            "## Section 4: Backtesting and Multiplier",
+            "## Backtesting and Multiplier",
             f"- Backtesting window observations: **{basel_backtesting_observations}**",
-            f"- Exceptions (actual PnL breaches): **{basel_backtesting_exceptions}**",
-            f"- Traffic-light zone: **{basel_backtesting_zone.upper()}**",
+            f"- Exceptions (clean-return proxy breaches): **{basel_backtesting_exceptions}**",
+            f"- Traffic-light result: **{basel_backtesting_zone.upper() if basel_backtesting_zone != 'insufficient' else 'NOT CLASSIFIED'}**",
+            f"- Classification note: **{'250 observations required for the standard traffic-light interpretation.' if basel_backtesting_zone == 'insufficient' else 'Observation count supports traffic-light interpretation.'}**",
             f"- Capital multiplier (m): **{basel_capital_multiplier:.2f}**",
             "",
-            "## Section 5: Capital Requirement Calculation",
-            "- VaR capital leg formula: `max(VaR_t-1, m × Avg(VaR)_60)`",
-            "- Stressed VaR capital leg formula: `max(sVaR_t-1, m × Avg(sVaR)_60)`",
+            "## Capital Stack",
+            "- Illustrative VaR leg formula: `max(current VaR, m × Avg(VaR)_60)`",
+            "- Illustrative stressed VaR leg formula: `max(current sVaR, m × Avg(sVaR)_60)`",
             f"- VaR binding input: max({_pct(basel_var_99_10d)}, {_pct(basel_capital_multiplier * basel_var_60d_avg_99_10d)})",
             f"- sVaR binding input: max({_pct(basel_stressed_var_99_10d)}, {_pct(basel_capital_multiplier * basel_stressed_var_60d_avg_99_10d)})",
             f"- VaR capital leg: **{_money(basel_var_capital_charge)}**",
@@ -214,14 +290,14 @@ def _basel_simplified_report(report: Mapping[str, object], audience: str, genera
             f"- CRM charge (MVP placeholder): **{_money(basel_crm_charge)}**",
             f"- **Total market risk capital requirement: {_money(basel_total_capital_charge)}**",
             "",
-            "## Section 6: Capital Intensity and RWA Proxy",
+            "## Capital Intensity and RWA Equivalent",
             f"- Capital / market value: **{_pct(basel_total_capital_charge / total_value if total_value > 0 else 0.0)}**",
-            f"- RWA proxy at 8% capital ratio = **{_money(rwa_proxy)}**",
+            f"- RWA equivalent (capital x 12.5): **{_money(rwa_proxy)}**",
             "",
-            "## Section 7: Control Checks",
+            "## Control Checks",
             *_warning_lines(report),
             "",
-            "## Section 8: Stress Data Governance",
+            "## Stress Data Governance",
             "- Stress calibration is assigned by desk/portfolio rather than selected ad hoc per request.",
             "- Current positions are revalued on the approved historical stress window.",
             "- Short-history instruments use approved proxy transformations where direct stress-window history is not available.",
@@ -235,8 +311,8 @@ def _basel_simplified_report(report: Mapping[str, object], audience: str, genera
                 "No Basel sVaR governance review items raised by this run.",
             ),
             "",
-            "## Section 9: Methodology and Limitations",
-            "- This report is Basel 2.5-style internal monitoring, not a submitted Pillar 1 template.",
+            "## Methodology and Limitations",
+            "- This report is legacy Basel 2.5-style internal monitoring, not a submitted Pillar 1 template or current FRTB IMA calculation.",
             "- sVaR window assignment approximates an internal-model governance workflow using approved portfolio-level windows.",
             "- IRC and CRM are represented as explicit placeholders until issuer-level migration/default and correlation-trading inputs are onboarded.",
             "- Governance workflow (independent validation, approval status, and policy attestations) is outside this API slice.",
@@ -245,7 +321,7 @@ def _basel_simplified_report(report: Mapping[str, object], audience: str, genera
     return GeneratedReport(
         title=REPORT_TITLES["basel_simplified_capital"],
         report=markdown,
-        mode="offline_sample_report",
+        mode="deterministic_basel_dashboard",
         model="local-basel25-monitoring-template",
         citations=[
             "risk_report",
@@ -255,6 +331,7 @@ def _basel_simplified_report(report: Mapping[str, object], audience: str, genera
             "basel_backtesting_exceptions_250d",
             "basel_total_capital_charge",
         ],
+        dashboard=_basel_dashboard_data(report, audience, generated_at),
     )
 
 
@@ -320,7 +397,7 @@ def generate_report(
 ) -> GeneratedReport:
     settings = get_settings()
     fallback = _fallback_report(report, report_type, audience)
-    if not settings.poe_api_key:
+    if report_type == "basel_simplified_capital" or not settings.poe_api_key:
         return fallback
 
     if report_type == "basel_simplified_capital":
