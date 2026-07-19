@@ -2,7 +2,9 @@ import pandas as pd
 from fastapi.testclient import TestClient
 
 from app.api.main import app
+from app.data.market_data import MarketDataError
 from app.risk.stress import run_historical_replay
+from app.services import stress_service
 
 
 def test_historical_replay_reconciles_worst_loss_attribution() -> None:
@@ -71,6 +73,25 @@ def test_stress_endpoint_rejects_unapproved_portfolio_scenario() -> None:
 
     assert response.status_code == 422
     assert "not approved" in response.json()["detail"]
+
+
+def test_live_stress_run_falls_back_to_existing_demo_data_when_yfinance_fails(monkeypatch) -> None:
+    def unavailable(*_args, **_kwargs):
+        raise MarketDataError("yfinance unavailable")
+
+    monkeypatch.setattr(stress_service, "ingest_historical_prices", unavailable)
+    monkeypatch.setattr(stress_service, "ingest_governed_stress_prices", unavailable)
+
+    result = stress_service.run_stress_test(
+        portfolio_id="core_long_equity",
+        scenario_id="growth_2022",
+        use_demo_data=False,
+    )
+
+    assert result.data_mode == "fallback_demo_current_marks_with_demo_scenario"
+    assert result.attribution_reconciled is True
+    assert any("deterministic demo marks" in warning for warning in result.coverage_warnings)
+    assert any("deterministic demo path" in warning for warning in result.coverage_warnings)
 
 
 def test_scenario_catalog_marks_portfolio_approvals() -> None:

@@ -1,6 +1,6 @@
 # AI-Enhanced Risk Monitoring and Decision Support System
 
-Production-style Python app for portfolio risk analytics, Basel-style capital monitoring, and grounded report generation.
+Production-style Python app for portfolio risk analytics, Basel-style capital monitoring, grounded report generation, and capital-markets regulatory intelligence.
 
 ## What This Repository Does
 
@@ -10,6 +10,7 @@ This project separates deterministic market-risk computation from language gener
 - Service and report layers package market-data outputs into dashboard payloads, concise markdown, and a structured Basel capital dashboard.
 - API routes stay thin and delegate business logic to services.
 - The dashboard consumes the same API surface used by report generation and portfolio inspection.
+- A companion regulatory intelligence page tracks official-first developments, portfolio relevance, and saved weekly editorial briefings.
 
 ## Architecture Overview
 
@@ -108,6 +109,12 @@ The repository is structured into clear layers:
 - `app/api/routes/dashboard.py`
   - `dashboard()`: serves the interactive HTML dashboard client.
 
+- `app/api/routes/regulatory_dashboard.py`
+  - `regulatory_intelligence_dashboard()`: serves the source-grounded regulatory intelligence workspace.
+
+- `app/api/routes/regulatory.py`
+  - Lists and refreshes regulatory updates, generates and lists saved newsletters, and exposes the reserved weekly schedule state.
+
 - `app/api/routes/market_data.py`
   - `historical_prices()`: returns cached or live yfinance history for requested tickers.
 
@@ -151,6 +158,11 @@ The repository is structured into clear layers:
   - `ChatService.__init__()`: initializes orchestrator and Chroma collection.
   - `ChatService._retrieve_context()`: retrieves top policy/methodology context chunks.
   - `ChatService.chat()`: decides whether to run risk analysis, formats response, logs trace.
+
+- `app/services/regulatory_service.py`
+  - Stores regulatory developments and immutable newsletter issues in SQLite.
+  - Requests official-first web search through the configured OpenAI-compatible provider, validates source domains, and retains saved records when the provider is unavailable.
+  - Generates a grounded weekly editorial issue from saved updates, with a deterministic fallback when AI generation is unavailable.
 
 ### Orchestration and Interpretation Layer
 
@@ -260,6 +272,7 @@ The repository is structured into clear layers:
 ## API Endpoints
 
 - `GET /dashboard`
+- `GET /regulatory-intelligence`
 - `GET /api/health`
 - `GET /api/market-data/history`
 - `GET /api/portfolios`
@@ -269,6 +282,11 @@ The repository is structured into clear layers:
 - `POST /api/stress/runs`
 - `POST /api/chat`
 - `POST /api/reports/generate`
+- `GET /api/regulatory/updates`
+- `POST /api/regulatory/refresh`
+- `GET /api/regulatory/newsletters`
+- `POST /api/regulatory/newsletters/generate`
+- `GET /api/regulatory/schedule`
 
 ## Request Flow
 
@@ -296,11 +314,28 @@ Successful live tool runs return `mode: poe_tool_execution`. If no API key is co
 - Manual: select an approved scenario under **Historical stress testing** and choose **Run stress test**.
 - AI: ask, for example, `Run the approved growth stress test and give me the report.`
 - Current marks can use deterministic demo prices or live yfinance history.
-- Scenario paths always come from governed historical windows through `ingest_governed_stress_prices()`; missing history may use only the disclosed approved proxy mappings.
+- Live stress fetches use the local cache before yfinance. If yfinance is unavailable and no usable cached data exists, the run falls back to deterministic demo marks and/or a demo scenario path; the returned data mode and coverage warnings disclose the fallback.
+- Scenario paths normally come from governed historical windows through `ingest_governed_stress_prices()`; missing history may use only the disclosed approved proxy mappings.
 - The engine applies cumulative observed instrument returns to current marked position values, finds the worst point in the window, and reconciles total P&L to position attribution.
 - The visual result includes loss KPIs, P&L path, top contributors, data mode, proxy/coverage disclosure, methodology limitations, and downloadable HTML.
 
 This is a static-balance-sheet historical replay, not a forecast or regulatory capital calculation. It does not model trading responses, liquidity/market impact, funding, margin, forced liquidation, or nonlinear optionality beyond the observed instrument or approved proxy path.
+
+## Regulatory Intelligence
+
+The regulatory workspace is available at [http://127.0.0.1:8000/regulatory-intelligence](http://127.0.0.1:8000/regulatory-intelligence). The risk dashboard remains the main page and links directly to this companion surface.
+
+- Launch jurisdictions: Hong Kong (SFC and HKMA), global Basel/BCBS, United States, United Kingdom, and Singapore (MAS).
+- Focus topics: market risk, Basel capital, derivatives, counterparty credit risk, capital markets, and material AI risk.
+- First-run SQLite records provide clearly marked official-source watch items for every launch jurisdiction. They are durable fallback content, not representations of current breaking news.
+- **Update intelligence** requests a 14-day web search through the configured Responses API. The provider must support the `web_search_preview` tool.
+- Source policy accepts official regulator domains first and Bloomberg, WSJ, Reuters, or FT as secondary sources. Items from other domains are rejected before persistence.
+- Every record includes a structured impact rating, portfolio-relevance flag, impact note, source tier, and direct source link.
+- **Generate weekly issue** creates and saves an on-demand, financial-newspaper-style briefing using only persisted, vetted records. Newsletter HTML is sanitized in the browser before rendering.
+- Saved update and newsletter history lives in `risk_advisor.db`. Older incompatible regulatory tables are retained under timestamped `*_legacy_*` names during forward migration.
+- Weekly scheduling is represented by a disabled API/UI placeholder; no background scheduler is enabled in this version.
+
+If `POE_API_KEY` is absent, refresh returns the saved official-source records with `mode: seed_fallback`, and newsletter generation uses `editorial_fallback`. Provider failures are disclosed and never presented as successful live search. AI summaries may be incomplete or incorrect and are not legal advice; users must verify linked primary sources.
 
 ## Configuration
 
@@ -318,6 +353,8 @@ Environment-driven settings are defined in `app/core/config.py`:
 - `BENCHMARK_TICKER`
 - `DEMO_LOOKBACK_DAYS`
 - `POE_API_KEY`
+- `POE_BASE_URL` (default `https://api.poe.com/v1`)
+- `POE_MODEL` (default `gpt-5.4`)
 
 Defaults are applied if environment variables are absent or unparsable.
 
@@ -339,6 +376,8 @@ Defaults are applied if environment variables are absent or unparsable.
 - Legacy Basel 2.5-style illustrative monitoring with governed candidate stress windows, conservative stress-window selection, yfinance stress histories, proxy mappings for short-history instruments, and governance warnings when stress calibration needs review
 - Explicit scope boundary: this demo does not claim regulatory/model approval and does not implement current FRTB IMA expected shortfall, liquidity horizons, modellability/NMRF, PLA, or default risk charge requirements
 - Deterministic sample-data report fallback when the AI provider is unavailable
+- Official-first regulatory intelligence with jurisdiction/topic/impact filters and explicit portfolio relevance
+- SQLite update and newsletter history with on-demand grounded editorial generation
 
 ## Implementation Checklist
 
@@ -353,6 +392,8 @@ Status reflects current code in this repository.
 - [x] API tests for chat fallback, report fallback, dashboard rendering, market data, and risk output
 - [x] Legacy Basel 2.5-style VaR/sVaR illustrative monitoring with governed stress-window assignment, rolling averages, prior-window backtesting, proxy disclosure, and a structured visual dashboard
 - [x] Manual and AI-triggered historical stress replay with portfolio scenario approvals, typed tool execution, P&L reconciliation, governance disclosure, and dashboard reporting
+- [x] Regulatory intelligence workspace with trusted-source web refresh, impact classification, portfolio relevance, saved history, and on-demand weekly newsletters
+- [ ] Automated weekly regulatory newsletter scheduling and delivery
 - [ ] CI workflow for automated test/lint on push/PR
 - [ ] Machine-readable progress tracker (for example `progress.json`)
 
@@ -388,6 +429,8 @@ uvicorn app.api.main:app --reload
 API docs:
 
 - [OpenAPI docs](http://127.0.0.1:8000/docs)
+- [Risk dashboard](http://127.0.0.1:8000/dashboard)
+- [Regulatory intelligence](http://127.0.0.1:8000/regulatory-intelligence)
 
 ## Example Requests
 
@@ -452,6 +495,18 @@ Chat:
 curl -X POST http://127.0.0.1:8000/api/chat \
   -H "Content-Type: application/json" \
   -d '{"question": "Run the approved growth stress test and give me the report", "portfolio_id": "core_long_equity", "use_demo_data": true}'
+```
+
+Refresh regulatory intelligence:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/regulatory/refresh
+```
+
+Generate and persist a weekly regulatory issue:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/regulatory/newsletters/generate
 ```
 
 ## Run Tests

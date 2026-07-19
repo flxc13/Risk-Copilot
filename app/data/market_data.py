@@ -65,15 +65,18 @@ def fetch_adjusted_close(
     except ModuleNotFoundError as exc:  # pragma: no cover - dependency issue
         raise MarketDataError("yfinance is required for live market-data fetches") from exc
 
-    raw = yf.download(
-        symbols if len(symbols) > 1 else symbols[0],
-        period=period,
-        start=start,
-        end=end,
-        auto_adjust=True,
-        progress=False,
-        threads=True,
-    )
+    try:
+        raw = yf.download(
+            symbols if len(symbols) > 1 else symbols[0],
+            period=period,
+            start=start,
+            end=end,
+            auto_adjust=True,
+            progress=False,
+            threads=True,
+        )
+    except Exception as exc:  # pragma: no cover - depends on yfinance/network behavior
+        raise MarketDataError(f"yfinance request failed: {exc}") from exc
 
     if raw.empty:
         raise MarketDataError("No market data returned by yfinance")

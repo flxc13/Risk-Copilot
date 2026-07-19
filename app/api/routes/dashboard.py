@@ -949,8 +949,8 @@ def _dashboard_html() -> str:
       inset: 0;
       z-index: 100;
       overflow-y: auto;
-      background: #eef2f5;
-      color: #17202a;
+      background: linear-gradient(180deg, rgba(255,255,255,0.015), transparent 180px), var(--bg);
+      color: var(--text);
     }
     .basel-report-overlay.visible { display: block; }
     .basel-report-toolbar {
@@ -963,19 +963,20 @@ def _dashboard_html() -> str:
       gap: 16px;
       min-height: 58px;
       padding: 10px 28px;
-      color: #f8fafc;
-      background: #17212b;
-      border-bottom: 3px solid #18a999;
+      color: var(--text);
+      background: linear-gradient(90deg, #1b1f21, #111315);
+      border-bottom: 3px solid var(--accent);
+      box-shadow: var(--shadow-inset);
     }
-    .basel-report-toolbar strong { font-size: 14px; letter-spacing: 0; }
+    .basel-report-toolbar strong { font: 14px var(--font-mono); letter-spacing: 0; }
     .basel-toolbar-actions { display: flex; gap: 8px; }
     .basel-toolbar-actions button {
       min-height: 36px;
       padding: 8px 12px;
-      border: 1px solid rgba(255,255,255,0.24);
-      border-radius: 6px;
-      color: #f8fafc;
-      background: rgba(255,255,255,0.08);
+      border: 1px solid var(--steel-bright);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      background: #0d0f10;
       cursor: pointer;
     }
     .basel-report-canvas {
@@ -988,27 +989,28 @@ def _dashboard_html() -> str:
       gap: 24px;
       align-items: end;
       padding: 24px 28px;
-      color: #f8fafc;
-      background: #243746;
-      border-left: 6px solid #18a999;
+      color: var(--text);
+      background: repeating-linear-gradient(135deg, rgba(255,255,255,0.014) 0 1px, transparent 1px 6px), linear-gradient(180deg, #1b1f21, #111315);
+      border-left: 6px solid var(--accent);
+      box-shadow: var(--shadow);
     }
     .basel-report-kicker {
       margin-bottom: 8px;
-      color: #82ddd2;
+      color: var(--accent);
       font-size: 11px;
-      font-weight: 800;
+      font: 800 11px var(--font-mono);
       letter-spacing: 0.14em;
       text-transform: uppercase;
     }
     .basel-report-head h2 { margin: 0; font-size: 28px; letter-spacing: 0; }
-    .basel-report-head p { margin: 8px 0 0; color: #c8d2da; font-size: 13px; }
+    .basel-report-head p { margin: 8px 0 0; color: var(--muted); font-size: 13px; }
     .basel-scope-badge {
       max-width: 300px;
       padding: 10px 12px;
-      border: 1px solid rgba(255,255,255,0.22);
-      border-radius: 6px;
-      color: #f8fafc;
-      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--steel-bright);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      background: rgba(0,0,0,0.2);
       font-size: 11px;
       line-height: 1.45;
       text-align: right;
@@ -1016,18 +1018,19 @@ def _dashboard_html() -> str:
     .basel-kpi-grid {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      border: 1px solid #ccd5dc;
+      border: 1px solid var(--steel);
       border-top: 0;
-      background: #fff;
+      background: linear-gradient(180deg, var(--panel-2), var(--panel));
+      box-shadow: var(--shadow-inset);
     }
     .basel-kpi {
       min-width: 0;
       padding: 20px 22px;
-      border-right: 1px solid #dce3e8;
+      border-right: 1px solid var(--steel);
     }
     .basel-kpi:last-child { border-right: 0; }
-    .basel-kpi span { display: block; color: #65727d; font-size: 11px; font-weight: 800; text-transform: uppercase; }
-    .basel-kpi strong { display: block; margin-top: 7px; color: #17202a; font-size: 25px; letter-spacing: 0; }
+    .basel-kpi span { display: block; color: var(--muted); font: 800 11px var(--font-mono); text-transform: uppercase; }
+    .basel-kpi strong { display: block; margin-top: 7px; color: var(--text); font: 800 25px var(--font-mono); letter-spacing: 0; }
     .basel-dashboard-grid {
       display: grid;
       grid-template-columns: 1.15fr 0.85fr;
@@ -1037,9 +1040,10 @@ def _dashboard_html() -> str:
     .basel-dashboard-section {
       min-width: 0;
       padding: 22px;
-      border: 1px solid #ccd5dc;
-      border-radius: 6px;
-      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: linear-gradient(180deg, rgba(255,255,255,0.018), transparent 32%), linear-gradient(180deg, var(--panel-2), var(--panel));
+      box-shadow: var(--shadow);
     }
     .basel-dashboard-section.wide { grid-column: 1 / -1; }
     .basel-section-title {
@@ -1049,10 +1053,10 @@ def _dashboard_html() -> str:
       gap: 12px;
       margin-bottom: 16px;
       padding-bottom: 10px;
-      border-bottom: 2px solid #243746;
+      border-bottom: 2px solid var(--accent);
     }
-    .basel-section-title h3 { margin: 0; color: #243746; font-size: 15px; letter-spacing: 0; }
-    .basel-section-title span { color: #65727d; font-size: 11px; }
+    .basel-section-title h3 { margin: 0; color: var(--text); font: 15px var(--font-mono); letter-spacing: 0; }
+    .basel-section-title span { color: var(--muted); font-size: 11px; }
     .basel-stack-row {
       display: grid;
       grid-template-columns: 170px minmax(120px, 1fr) 110px;
@@ -1061,52 +1065,53 @@ def _dashboard_html() -> str:
       margin: 13px 0;
       font-size: 12px;
     }
-    .basel-stack-track { height: 12px; overflow: hidden; background: #e5eaee; }
-    .basel-stack-fill { height: 100%; min-width: 2px; background: #18a999; }
-    .basel-stack-fill.placeholder { background: #b8c1c8; }
+    .basel-stack-track { height: 12px; overflow: hidden; background: #0d0f10; box-shadow: var(--shadow-inset); }
+    .basel-stack-fill { height: 100%; min-width: 2px; background: var(--accent); }
+    .basel-stack-fill.placeholder { background: var(--steel-bright); }
     .basel-stack-value { font-weight: 800; text-align: right; }
     .basel-status-tag {
       display: inline-block;
       margin-left: 6px;
       padding: 2px 5px;
-      border-radius: 4px;
-      color: #6b4f00;
-      background: #fff0bf;
+      border-radius: var(--radius-xs);
+      color: #f1f2f3;
+      background: rgba(199,201,204,0.13);
       font-size: 9px;
       font-weight: 800;
       text-transform: uppercase;
     }
     .basel-metric-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    .basel-metric-table th, .basel-metric-table td { padding: 10px 8px; border-bottom: 1px solid #e2e7eb; text-align: left; }
-    .basel-metric-table th { color: #65727d; font-size: 10px; text-transform: uppercase; }
+    .basel-metric-table th, .basel-metric-table td { padding: 10px 8px; border-bottom: 1px solid var(--line); text-align: left; }
+    .basel-metric-table th { color: var(--muted); font: 10px var(--font-mono); text-transform: uppercase; }
     .basel-metric-table td:nth-child(2) { font-weight: 800; text-align: right; }
-    .basel-metric-table td:last-child { color: #65727d; text-align: right; }
+    .basel-metric-table td:last-child { color: var(--muted); text-align: right; }
     .basel-classification {
       padding: 16px;
-      border-left: 5px solid #d99a1b;
-      background: #fff8e6;
+      border-left: 5px solid var(--accent);
+      background: rgba(199,201,204,0.08);
     }
-    .basel-classification.green { border-left-color: #26855b; background: #edf8f2; }
-    .basel-classification.yellow { border-left-color: #d99a1b; }
-    .basel-classification.red { border-left-color: #c94b4b; background: #fff0f0; }
-    .basel-classification strong { display: block; margin-bottom: 5px; color: #17202a; }
-    .basel-classification span { color: #596671; font-size: 12px; line-height: 1.5; }
+    .basel-classification.green { border-left-color: var(--good); background: rgba(120,167,131,0.1); }
+    .basel-classification.yellow { border-left-color: var(--accent); }
+    .basel-classification.red { border-left-color: var(--bad); background: rgba(216,90,90,0.1); }
+    .basel-classification strong { display: block; margin-bottom: 5px; color: var(--text); }
+    .basel-classification span { color: var(--muted); font-size: 12px; line-height: 1.5; }
     .basel-evidence-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .basel-evidence {
       padding: 14px;
-      border: 1px solid #dce3e8;
-      background: #f7f9fa;
+      border: 1px solid var(--line);
+      background: #0f1112;
+      box-shadow: var(--shadow-inset);
     }
-    .basel-evidence strong { display: block; color: #243746; font-size: 12px; }
-    .basel-evidence code { display: block; margin: 7px 0; color: #52616d; font-size: 11px; white-space: normal; }
-    .basel-evidence b { color: #17202a; font-size: 18px; }
-    .basel-detail-list { margin: 0; padding-left: 18px; color: #4b5964; font-size: 12px; line-height: 1.6; }
-    .basel-detail-list li { margin: 6px 0; color: #4b5964; }
+    .basel-evidence strong { display: block; color: var(--text); font: 12px var(--font-mono); }
+    .basel-evidence code { display: block; margin: 7px 0; color: var(--muted); font-size: 11px; white-space: normal; }
+    .basel-evidence b { color: var(--text); font: 800 18px var(--font-mono); }
+    .basel-detail-list { margin: 0; padding-left: 18px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .basel-detail-list li { margin: 6px 0; color: var(--muted); }
     .basel-governance-meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
-    .basel-governance-meta div { padding: 11px; background: #f1f4f6; }
-    .basel-governance-meta span { display: block; color: #65727d; font-size: 9px; font-weight: 800; text-transform: uppercase; }
-    .basel-governance-meta strong { display: block; margin-top: 5px; color: #243746; font-size: 12px; }
-    .basel-report-footer { margin-top: 16px; color: #687680; font-size: 10px; line-height: 1.5; }
+    .basel-governance-meta div { padding: 11px; background: #0d0f10; box-shadow: var(--shadow-inset); }
+    .basel-governance-meta span { display: block; color: var(--muted); font: 800 9px var(--font-mono); text-transform: uppercase; }
+    .basel-governance-meta strong { display: block; margin-top: 5px; color: var(--text); font-size: 12px; }
+    .basel-report-footer { margin-top: 16px; color: var(--muted); font: 10px/1.5 var(--font-mono); }
     .stress-workbench {
       margin-top: 18px;
       padding: 24px;
@@ -1153,6 +1158,8 @@ def _dashboard_html() -> str:
       font-weight: 800;
       text-transform: uppercase;
     }
+    .stress-run-badge[data-source="live"] { border-color: rgba(120,167,131,0.42); color: #a9c9b0; background: rgba(120,167,131,0.10); }
+    .stress-run-badge[data-source="fallback"] { border-color: rgba(199,201,204,0.56); color: #f1f2f3; background: rgba(199,201,204,0.14); }
     .stress-kpis {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1242,22 +1249,22 @@ def _dashboard_html() -> str:
 
     /* Industrial operations-console visual system */
     :root {
-      --bg: #090a0b;
-      --panel: #121416;
-      --panel-2: #191d20;
-      --panel-3: #202529;
-      --line: rgba(151, 161, 168, 0.22);
-      --line-hot: rgba(217, 154, 50, 0.68);
-      --text: #f0f1ee;
-      --muted: #9aa2a6;
-      --accent: #d99a32;
-      --accent-2: #e4a33a;
-      --accent-3: #bd7720;
+      --bg: #030303;
+      --panel: #0b0b0b;
+      --panel-2: #141414;
+      --panel-3: #1b1b1b;
+      --line: rgba(199, 201, 204, 0.22);
+      --line-hot: rgba(240, 241, 242, 0.68);
+      --text: #f3f4f5;
+      --muted: #a7aaae;
+      --accent: #c7c9cc;
+      --accent-2: #f0f1f2;
+      --accent-3: #8f9398;
       --good: #78a783;
       --bad: #d85a5a;
       --violet: #a0a7ab;
-      --steel: #343b40;
-      --steel-bright: #4a545b;
+      --steel: #35373a;
+      --steel-bright: #595c60;
       --radius-xs: 2px;
       --radius-sm: 4px;
       --radius-md: 6px;
@@ -1280,12 +1287,21 @@ def _dashboard_html() -> str:
       opacity: 0.52;
       animation: none;
     }
-    body::after { display: none; }
+    body::after {
+      display: block;
+      background:
+        radial-gradient(circle, rgba(199,201,204,0.22) 0 1px, transparent 1.5px) 0 0 / 137px 127px,
+        radial-gradient(circle, rgba(199,201,204,0.16) 0 1px, transparent 1.5px) 47px 63px / 181px 163px,
+        radial-gradient(circle, rgba(255,255,255,0.12) 0 1px, transparent 1.5px) 101px 23px / 227px 199px;
+      z-index: 2;
+      opacity: 0.46;
+      animation: particleDrift 28s linear infinite;
+    }
     .app-shell { grid-template-columns: 286px minmax(0, 1fr); }
     .sidebar {
       padding: 20px 16px;
       border-right: 1px solid var(--steel);
-      background: linear-gradient(90deg, rgba(255,255,255,0.018), transparent 42%), linear-gradient(180deg, #171a1c, #0d0f10);
+      background: linear-gradient(90deg, rgba(255,255,255,0.008), transparent 42%), linear-gradient(180deg, #101112, #080809);
       backdrop-filter: none;
       box-shadow: 8px 0 24px rgba(0,0,0,0.26), inset -1px 0 0 rgba(255,255,255,0.025);
     }
@@ -1299,14 +1315,15 @@ def _dashboard_html() -> str:
       border: 1px solid var(--accent);
       border-radius: 1px;
       background: #111314;
-      box-shadow: 0 0 0 3px rgba(217,154,50,0.08);
+      box-shadow: 0 0 0 3px rgba(199,201,204,0.08);
+      animation: brandCorePulse 3.6s ease-in-out infinite;
     }
     .brand-copy strong { letter-spacing: 0; text-transform: uppercase; }
     .side-section {
       padding: 14px;
       margin-bottom: 12px;
       border-radius: var(--radius-md);
-      background: linear-gradient(180deg, #171a1c, #111315);
+      background: linear-gradient(180deg, #111213, #0a0b0c);
       box-shadow: var(--shadow-inset);
     }
     .side-title, .sidebar-kpi .label { font-family: var(--font-mono); }
@@ -1318,13 +1335,17 @@ def _dashboard_html() -> str:
       transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
     }
     .nav-item:hover, .nav-item.active {
-      border-color: rgba(217,154,50,0.36);
-      background: linear-gradient(90deg, rgba(217,154,50,0.13), rgba(217,154,50,0.025));
+      border-color: rgba(199,201,204,0.22);
+      background: linear-gradient(90deg, rgba(199,201,204,0.065), rgba(199,201,204,0.012));
       box-shadow: none;
       transform: translateX(1px);
     }
-    .status-badge { border-radius: var(--radius-xs); font-family: var(--font-mono); }
-    .content { width: 100%; max-width: 1680px; margin: 0 auto; padding: 22px 24px 42px; }
+    .status-badge { border-radius: var(--radius-xs); font-family: var(--font-mono); animation: statusBeacon 3.8s ease-in-out infinite; }
+    .content {
+      width: 100%;
+      min-width: 0;
+      padding: clamp(12px, 1.7vw, 22px) clamp(12px, 1.9vw, 24px) clamp(28px, 3.3vw, 42px);
+    }
     .hero {
       min-height: 176px;
       margin-bottom: 12px;
@@ -1334,6 +1355,7 @@ def _dashboard_html() -> str:
       border-radius: var(--radius-lg);
       background: linear-gradient(105deg, rgba(255,255,255,0.025), transparent 58%), repeating-linear-gradient(135deg, rgba(255,255,255,0.014) 0 1px, transparent 1px 6px), linear-gradient(180deg, #191d20, #101214);
       box-shadow: var(--shadow);
+      animation: heroFloat 7s ease-in-out infinite;
     }
     .hero::before {
       content: "SYS // RISK-OPS-01";
@@ -1369,22 +1391,27 @@ def _dashboard_html() -> str:
       box-shadow: var(--shadow-inset);
       color: var(--text);
       font: 11px var(--font-mono);
+      animation: telemetryBreathe 4.8s ease-in-out infinite;
     }
     .telemetry-chip span { color: var(--accent); }
+    .telemetry-chip:nth-child(2) { animation-delay: 0.8s; }
+    .telemetry-chip:nth-child(3) { animation-delay: 1.6s; }
+    .telemetry-chip:nth-child(4) { animation-delay: 2.4s; }
     .hero-orbit { display: none; }
     .command-strip {
       gap: 1px;
       margin-bottom: 12px;
-      border: 1px solid var(--steel);
+      border: 1px solid #2b2d30;
       border-radius: var(--radius-md);
       overflow: hidden;
-      background: var(--steel);
+      background: #252628;
     }
     .command-tile {
+      position: relative;
       padding: 11px 12px;
       border: 0;
       border-radius: 0;
-      background: linear-gradient(180deg, #171a1c, #111315);
+      background: #0d0e0f;
       box-shadow: var(--shadow-inset);
     }
     .command-tile strong { margin-bottom: 3px; color: var(--muted); font-family: var(--font-mono); }
@@ -1406,19 +1433,19 @@ def _dashboard_html() -> str:
     button {
       position: relative;
       overflow: hidden;
-      border-color: #efa943;
-      background: linear-gradient(180deg, #e0a23e, #b9781f);
-      color: #17120a;
+      border-color: #d5d7da;
+      background: linear-gradient(180deg, #f0f1f2, #a9adb2);
+      color: #0b0c0d;
       box-shadow: var(--shadow-inset), 0 4px 10px rgba(0,0,0,0.26);
     }
-    button:hover:not(:disabled) { border-color: #ffc66a; background: linear-gradient(180deg, #ebb04d, #c68224); transform: translateY(-1px); }
+    button:hover:not(:disabled) { border-color: #ffffff; background: linear-gradient(180deg, #ffffff, #c4c7ca); transform: translateY(-1px); }
     button:active:not(:disabled) { transform: translateY(1px); box-shadow: inset 0 2px 5px rgba(0,0,0,0.42); }
     button:disabled { cursor: not-allowed; color: #72787b; border-color: #30363a; background: #181b1d; box-shadow: var(--shadow-inset); opacity: 0.72; }
     button:disabled::after {
       content: "";
       position: absolute;
       inset: 0;
-      background: linear-gradient(90deg, transparent, rgba(217,154,50,0.12), transparent);
+      background: linear-gradient(90deg, transparent, rgba(199,201,204,0.12), transparent);
       transform: translateX(-100%);
       animation: processSweep 1.4s linear infinite;
     }
@@ -1439,9 +1466,9 @@ def _dashboard_html() -> str:
     .metric-label { font: 10px var(--font-mono); }
     .metric-value { font: 800 29px var(--font-mono); }
     .panel { border-radius: var(--radius-lg); }
-    .panel::before { background: linear-gradient(90deg, rgba(217,154,50,0.07), transparent 16%, transparent 84%, rgba(255,255,255,0.018)); }
+    .panel::before { background: linear-gradient(90deg, rgba(199,201,204,0.07), transparent 16%, transparent 84%, rgba(255,255,255,0.018)); }
     .section-heading h3, .table th { font-family: var(--font-mono); }
-    .section-heading h3::before { border-radius: 1px; background: var(--accent); box-shadow: none; }
+    .section-heading h3::before { border-radius: 1px; background: var(--accent); box-shadow: none; animation: sectionSignal 3.4s ease-in-out infinite; }
     .table { font-variant-numeric: tabular-nums; }
     .table-shell { width: 100%; overflow-x: auto; scrollbar-color: var(--steel-bright) #090a0b; }
     .status-item { border-radius: var(--radius-sm); background: #111416; }
@@ -1469,9 +1496,10 @@ def _dashboard_html() -> str:
       border: 1px solid var(--accent);
       border-radius: var(--radius-lg);
       background: linear-gradient(145deg, #343a3e, #141719 58%, #090a0b);
-      box-shadow: 0 10px 24px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 4px rgba(217,154,50,0.07);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 4px rgba(199,201,204,0.07);
+      animation: launcherFloat 5.6s ease-in-out infinite;
     }
-    .copilot-launcher:hover { border-color: #ffc263; box-shadow: 0 12px 28px rgba(0,0,0,0.44), 0 0 0 5px rgba(217,154,50,0.10); }
+    .copilot-launcher:hover { border-color: #ffffff; box-shadow: 0 12px 28px rgba(0,0,0,0.44), 0 0 0 5px rgba(199,201,204,0.10); }
     .copilot-pulse { box-shadow: 0 0 0 3px rgba(120,167,131,0.16); animation: statusPulse 2.4s ease-in-out infinite; }
     .copilot-window {
       border-color: var(--steel-bright);
@@ -1484,9 +1512,16 @@ def _dashboard_html() -> str:
     .copilot-icon-button, .copilot-status, .chat-log, .message, .prompt-toggle, .prompt-chip, .report-panel, .report-output { border-radius: var(--radius-sm); }
     .copilot-status { color: var(--good); background: rgba(120,167,131,0.08); font: 10px var(--font-mono); }
     .chat-log { background: #0c0e0f; }
-    .message.user { background: rgba(217,154,50,0.12); border-color: rgba(217,154,50,0.32); }
+    .message.user { background: rgba(199,201,204,0.12); border-color: rgba(199,201,204,0.32); }
     .message.ai { background: linear-gradient(180deg, #1a1e20, #121416); border-color: var(--line); box-shadow: none; }
     @keyframes panelEnter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes brandCorePulse { 0%, 100% { box-shadow: 0 0 0 3px rgba(199,201,204,0.08), 0 0 0 rgba(199,201,204,0); } 50% { box-shadow: 0 0 0 4px rgba(199,201,204,0.14), 0 0 14px rgba(199,201,204,0.24); } }
+    @keyframes statusBeacon { 0%, 100% { box-shadow: none; } 50% { box-shadow: 0 0 12px rgba(120,167,131,0.18); } }
+    @keyframes heroFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+    @keyframes telemetryBreathe { 0%, 100% { border-color: rgba(199,201,204,0.22); box-shadow: var(--shadow-inset); } 50% { border-color: rgba(240,241,242,0.42); box-shadow: var(--shadow-inset), 0 0 12px rgba(199,201,204,0.10); } }
+    @keyframes particleDrift { from { background-position: 0 0, 61px 83px, 131px 29px; } to { background-position: 173px -157px, -168px 280px, 414px -212px; } }
+    @keyframes sectionSignal { 0%, 100% { opacity: 0.62; } 50% { opacity: 1; box-shadow: 0 0 8px rgba(199,201,204,0.32); } }
+    @keyframes launcherFloat { 0%, 100% { transform: translateY(0); box-shadow: 0 10px 24px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 4px rgba(199,201,204,0.07); } 50% { transform: translateY(-4px); box-shadow: 0 14px 28px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 5px rgba(199,201,204,0.10); } }
     @keyframes statusPulse { 0%, 100% { opacity: 0.62; } 50% { opacity: 1; } }
     @keyframes processSweep { to { transform: translateX(100%); } }
     @media (max-width: 1260px) { .app-shell { grid-template-columns: 1fr; } }
@@ -1528,6 +1563,7 @@ def _dashboard_html() -> str:
           <a class="nav-item" href="#stress-testing"><span>Stress testing</span><small>Historical replay</small></a>
           <a class="nav-item" href="#exposure"><span>Exposure</span><small>Weights and holdings</small></a>
           <a class="nav-item" href="#copilot"><span>AI Copilot</span><small>Ask, explain, investigate</small></a>
+          <a class="nav-item" href="/regulatory-intelligence"><span>Regulatory intel</span><small>Capital markets</small></a>
         </div>
       </div>
 
@@ -1547,7 +1583,7 @@ def _dashboard_html() -> str:
       <div class="hero" id="overview">
         <div>
           <p class="eyebrow">Risk Advisor Copilot</p>
-          <h1>Risk Operations Console</h1>
+          <h1>AI-Enhanced Risk Command Center</h1>
           <div class="subtitle">Portfolio telemetry, governed historical stress, capital evidence, and tool-enabled AI analysis in one operational surface.</div>
           <div class="hero-telemetry">
             <div class="telemetry-chip"><span>Signal</span>VaR / CVaR online</div>
@@ -1611,7 +1647,7 @@ def _dashboard_html() -> str:
         <div class="stress-results" id="stress-results">
           <div class="stress-result-head">
             <div><h4 id="stress-result-title"></h4><p id="stress-result-subtitle"></p></div>
-            <div class="stress-run-badge">Deterministic replay</div>
+            <div class="stress-run-badge" id="stress-data-source" role="status">Deterministic replay</div>
           </div>
           <div class="stress-kpis" id="stress-kpis"></div>
           <div class="stress-analysis-grid">
@@ -1826,6 +1862,14 @@ def _dashboard_html() -> str:
     const percentage = new Intl.NumberFormat(undefined, { style: "percent", minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const decimal = new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 });
     const copilotSize = { width: 560, height: window.innerHeight - 44 };
+    const chartTheme = {
+      portfolio: "#2962ff",
+      benchmark: "#ff9800",
+      positive: "#26a69a",
+      loss: "#ef5350",
+      grid: "rgba(203, 208, 214, 0.14)",
+      axis: "#e4e7eb",
+    };
 
     function clamp(value, min, max) {
       return Math.min(Math.max(value, min), max);
@@ -2097,12 +2141,29 @@ def _dashboard_html() -> str:
       return `<!doctype html><html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><title>${escapeHtml(title)}</title><style>${styles}</style></head><body><section class="basel-report-overlay visible"><div class="basel-report-canvas">${buildBaselDashboardMarkup(dashboard)}</div></section></body></html>`;
     }
 
+    function stressDataSourceLabel(dataMode) {
+      const sourceLabels = {
+        live_current_marks_with_governed_historical_scenario: "Live/cache market data",
+        demo_current_marks_with_governed_historical_scenario: "Demo marks + governed history",
+        fallback_demo_current_marks_with_governed_historical_scenario: "Fallback demo marks + governed history",
+        fallback_demo_current_marks_with_demo_scenario: "Fallback demo data",
+      };
+      return sourceLabels[dataMode] || `Data mode: ${String(dataMode || "unknown").replaceAll("_", " ")}`;
+    }
+
     function renderStressResult(result, shouldScroll = false) {
       state.stressResult = result;
       stressResults.classList.add("visible");
       downloadStressButton.disabled = false;
       document.getElementById("stress-result-title").textContent = result.scenario_label;
       document.getElementById("stress-result-subtitle").textContent = `${result.portfolio_name} · ${result.scenario_start_date} to ${result.scenario_end_date} · worst point ${result.worst_date}`;
+      const stressDataSource = document.getElementById("stress-data-source");
+      stressDataSource.textContent = `Deterministic replay · ${stressDataSourceLabel(result.data_mode)}`;
+      stressDataSource.dataset.source = result.data_mode === "live_current_marks_with_governed_historical_scenario"
+        ? "live"
+        : result.data_mode && result.data_mode.startsWith("fallback_")
+          ? "fallback"
+          : "demo";
       document.getElementById("stress-kpis").innerHTML = [
         ["Current value", money.format(result.current_value), ""],
         ["Worst loss", money.format(result.worst_loss), "loss"],
@@ -2140,16 +2201,16 @@ def _dashboard_html() -> str:
         type: "scatter",
         mode: "lines",
         fill: "tozeroy",
-        line: { color: "#d85a5a", width: 2 },
-        fillcolor: "rgba(216,90,90,0.14)",
+        line: { color: chartTheme.loss, width: 2 },
+        fillcolor: "rgba(239,83,80,0.18)",
         hovertemplate: "%{x}<br>P&L %{y:$,.0f}<extra></extra>",
       }], {
         margin: { l: 62, r: 18, t: 12, b: 38 },
         paper_bgcolor: "rgba(0,0,0,0)",
         plot_bgcolor: "rgba(0,0,0,0)",
-        xaxis: { gridcolor: "rgba(151,161,168,0.08)" },
-        yaxis: { tickprefix: "$", gridcolor: "rgba(216,90,90,0.10)", zerolinecolor: "rgba(151,161,168,0.30)" },
-        font: { color: "#e7e9e6", family: "Cascadia Mono, Consolas, monospace" },
+        xaxis: { gridcolor: chartTheme.grid },
+        yaxis: { tickprefix: "$", gridcolor: "rgba(239,83,80,0.18)", zerolinecolor: "rgba(228,231,235,0.34)" },
+        font: { color: chartTheme.axis, family: "Cascadia Mono, Consolas, monospace" },
       }, { displayModeBar: false, responsive: true });
       stressStatus.textContent = `Completed ${result.scenario_id}; worst loss ${money.format(result.worst_loss)} on ${result.worst_date}.`;
       stressStatus.dataset.state = "success";
@@ -2511,17 +2572,17 @@ def _dashboard_html() -> str:
         y: sorted.map(([ticker]) => ticker),
         marker: {
           color: sorted.map(([, weight]) => weight),
-          colorscale: [[0, "#3b4247"], [0.55, "#8a6731"], [1, "#d99a32"]],
-          line: { color: "rgba(238,247,255,0.20)", width: 1 },
+          colorscale: [[0, "#173e65"], [0.5, "#00bcd4"], [1, "#26a69a"]],
+          line: { color: "rgba(228,231,235,0.28)", width: 1 },
         },
         hovertemplate: "%{y}: %{x:.2%}<extra></extra>",
       }], {
         margin: { l: 80, r: 20, t: 20, b: 40 },
         paper_bgcolor: "rgba(0,0,0,0)",
         plot_bgcolor: "rgba(0,0,0,0)",
-        xaxis: { tickformat: ".0%", gridcolor: "rgba(125,211,252,0.10)", zerolinecolor: "rgba(125,211,252,0.18)" },
-        yaxis: { automargin: true, gridcolor: "rgba(125,211,252,0.04)" },
-        font: { color: "#e5eefb" },
+        xaxis: { tickformat: ".0%", gridcolor: chartTheme.grid, zerolinecolor: "rgba(228,231,235,0.30)" },
+        yaxis: { automargin: true, gridcolor: "rgba(203,208,214,0.06)" },
+        font: { color: chartTheme.axis },
       }, { displayModeBar: false, responsive: true });
 
       const warningList = document.getElementById("warning-list");
@@ -2539,27 +2600,27 @@ def _dashboard_html() -> str:
       const drawdownY = drawdown.map((point) => Number(point.drawdown));
 
       Plotly.newPlot("value-chart", [
-        { x: portfolio.x, y: portfolio.y, type: "scatter", mode: "lines", name: report.portfolio_name, line: { color: "#d99a32", width: 3 } },
-        { x: benchmark.x, y: benchmark.y, type: "scatter", mode: "lines", name: "Benchmark", line: { color: "#aab2b6", width: 2, dash: "dot" } },
+        { x: portfolio.x, y: portfolio.y, type: "scatter", mode: "lines", name: report.portfolio_name, line: { color: chartTheme.portfolio, width: 3 } },
+        { x: benchmark.x, y: benchmark.y, type: "scatter", mode: "lines", name: "Benchmark", line: { color: chartTheme.benchmark, width: 2, dash: "dot" } },
       ], {
         margin: { l: 50, r: 20, t: 20, b: 40 },
         paper_bgcolor: "rgba(0,0,0,0)",
         plot_bgcolor: "rgba(0,0,0,0)",
-        yaxis: { title: "Normalized to 100", gridcolor: "rgba(125,211,252,0.10)", zerolinecolor: "rgba(125,211,252,0.18)" },
-        xaxis: { gridcolor: "rgba(125,211,252,0.08)" },
-        legend: { orientation: "h", bgcolor: "rgba(3,7,18,0.30)" },
-        font: { color: "#e5eefb" },
+        yaxis: { title: "Normalized to 100", gridcolor: chartTheme.grid, zerolinecolor: "rgba(228,231,235,0.30)" },
+        xaxis: { gridcolor: "rgba(203,208,214,0.10)" },
+        legend: { orientation: "h", bgcolor: "rgba(5,5,5,0.64)" },
+        font: { color: chartTheme.axis },
       }, { displayModeBar: false, responsive: true });
 
       Plotly.newPlot("drawdown-chart", [
-        { x: drawdownX, y: drawdownY, type: "scatter", mode: "lines", fill: "tozeroy", name: "Drawdown", line: { color: "#fb7185", width: 2 }, fillcolor: "rgba(251,113,133,0.16)" },
+        { x: drawdownX, y: drawdownY, type: "scatter", mode: "lines", fill: "tozeroy", name: "Drawdown", line: { color: chartTheme.loss, width: 2 }, fillcolor: "rgba(239,83,80,0.18)" },
       ], {
         margin: { l: 50, r: 20, t: 20, b: 40 },
         paper_bgcolor: "rgba(0,0,0,0)",
         plot_bgcolor: "rgba(0,0,0,0)",
-        yaxis: { tickformat: ".0%", range: [Math.min(...drawdownY, 0) * 1.1, 0.02], gridcolor: "rgba(251,113,133,0.10)", zerolinecolor: "rgba(251,113,133,0.24)" },
-        xaxis: { gridcolor: "rgba(125,211,252,0.08)" },
-        font: { color: "#e5eefb" },
+        yaxis: { tickformat: ".0%", range: [Math.min(...drawdownY, 0) * 1.1, 0.02], gridcolor: "rgba(239,83,80,0.18)", zerolinecolor: "rgba(239,83,80,0.32)" },
+        xaxis: { gridcolor: "rgba(203,208,214,0.10)" },
+        font: { color: chartTheme.axis },
       }, { displayModeBar: false, responsive: true });
 
       const correlation = report.correlation_matrix || {};
@@ -2573,19 +2634,20 @@ def _dashboard_html() -> str:
         zmin: -1,
         zmax: 1,
         colorscale: [
-          [0, "#7f3434"],
-          [0.35, "#252a2d"],
-          [0.65, "#596269"],
-          [1, "#d99a32"],
+          [0, "#ef5350"],
+          [0.35, "#784447"],
+          [0.5, "#37474f"],
+          [0.65, "#26736e"],
+          [1, "#26a69a"],
         ],
         hovertemplate: "%{y} vs %{x}: %{z:.2f}<extra></extra>",
       }], {
         margin: { l: 60, r: 20, t: 20, b: 40 },
         paper_bgcolor: "rgba(0,0,0,0)",
         plot_bgcolor: "rgba(0,0,0,0)",
-        xaxis: { gridcolor: "rgba(125,211,252,0.05)" },
-        yaxis: { gridcolor: "rgba(125,211,252,0.05)" },
-        font: { color: "#e5eefb" },
+        xaxis: { gridcolor: "rgba(203,208,214,0.08)" },
+        yaxis: { gridcolor: "rgba(203,208,214,0.08)" },
+        font: { color: chartTheme.axis },
       }, { displayModeBar: false, responsive: true });
     }
 

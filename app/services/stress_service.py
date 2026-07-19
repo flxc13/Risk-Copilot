@@ -4,7 +4,13 @@ from datetime import datetime, timezone
 from uuid import uuid4
 
 from app.core.config import get_settings
-from app.data.market_data import STRESS_WINDOWS, ingest_governed_stress_prices, ingest_historical_prices
+from app.data.market_data import (
+    STRESS_WINDOWS,
+    MarketDataError,
+    StressMarketData,
+    ingest_governed_stress_prices,
+    ingest_historical_prices,
+)
 from app.data.mock_market import get_demo_market_data
 from app.data.mock_trades import get_demo_portfolio_by_id
 from app.data.portfolio_catalog import get_portfolio, list_portfolios
@@ -100,6 +106,7 @@ def run_stress_test(
 
     holdings = get_demo_portfolio_by_id(portfolio.portfolio_id)
     tickers = [str(holding["ticker"]).upper() for holding in holdings if str(holding["ticker"]).upper() != "CASH"]
+    fallback_warnings: list[str] = []
     if use_demo_data:
         current_prices, _ = get_demo_market_data(
             tickers=tickers,
@@ -108,11 +115,37 @@ def run_stress_test(
         )
         data_mode = "demo_current_marks_with_governed_historical_scenario"
     else:
-        current_prices = ingest_historical_prices(tickers, period="1y")
-        data_mode = "live_current_marks_with_governed_historical_scenario"
+        try:
+            current_prices = ingest_historical_prices(tickers, period="1y")
+            data_mode = "live_current_marks_with_governed_historical_scenario"
+        except MarketDataError as exc:
+            current_prices, _ = get_demo_market_data(
+                tickers=tickers,
+                benchmark_ticker=portfolio.benchmark_ticker or settings.benchmark_ticker,
+                periods=settings.demo_lookback_days,
+            )
+            data_mode = "fallback_demo_current_marks_with_governed_historical_scenario"
+            fallback_warnings.append(f"Live current marks unavailable; deterministic demo marks used: {exc}")
 
     latest_prices = current_prices.ffill().iloc[-1].to_dict()
-    stress_market_data = ingest_governed_stress_prices(tickers, stress_window_id=scenario_id)
+    try:
+        stress_market_data = ingest_governed_stress_prices(tickers, stress_window_id=scenario_id)
+    except MarketDataError as exc:
+        fallback_prices, _ = get_demo_market_data(
+            tickers=tickers,
+            benchmark_ticker=portfolio.benchmark_ticker or settings.benchmark_ticker,
+            periods=settings.demo_lookback_days,
+        )
+        _, _, label = STRESS_WINDOWS[scenario_id]
+        stress_market_data = StressMarketData(
+            prices=fallback_prices,
+            window_id=scenario_id,
+            label=label,
+            proxies_used=[],
+            coverage_warnings=[f"Governed historical scenario data unavailable; deterministic demo path used: {exc}"],
+            observations=len(fallback_prices.index),
+        )
+        data_mode = "fallback_demo_current_marks_with_demo_scenario"
     calculation = run_historical_replay(stress_market_data.prices, holdings, latest_prices)
     start_date, end_date, label = STRESS_WINDOWS[scenario_id]
     payload: dict[str, object] = {
@@ -128,7 +161,7 @@ def run_stress_test(
         "data_mode": data_mode,
         "methodology": "Current marked position values are multiplied by each instrument's cumulative observed return path from the approved historical window; the minimum portfolio value defines the worst replay point.",
         "proxies_used": stress_market_data.proxies_used,
-        "coverage_warnings": stress_market_data.coverage_warnings,
+        "coverage_warnings": [*fallback_warnings, *stress_market_data.coverage_warnings],
         "limitations": [
             "Static-balance-sheet replay: quantities and hedges do not change during the scenario.",
             "No liquidity horizon, market impact, funding, margin, or forced-liquidation effects are modeled.",
